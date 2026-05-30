@@ -31,72 +31,89 @@ struct ProjectDetailView: View {
     }
 
     private var headerBar: some View {
-        HStack(alignment: .bottom, spacing: 12) {
+        HStack(alignment: .bottom, spacing: 16) {
             if isEditing {
                 TextField(S.detail.projectNamePlaceholder, text: $project.name)
-                    .font(.title2.bold())
+                    .font(.title.bold())
                     .textFieldStyle(.roundedBorder)
             } else {
-                Text(project.name)
-                    .font(.title2.bold())
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(project.name)
+                        .font(.title.bold())
+                    Text(project.createdAt.formatted(date: .abbreviated, time: .shortened))
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                }
             }
             Spacer()
 
             let supported = project.platformStatuses.filter(\.isSupported).count
             let total = project.platformStatuses.count
-            Text("\(supported)/\(total) \(S.detail.platformCount)")
-                .font(.subheadline)
+            HStack(spacing: 16) {
+                statBadge(value: "\(supported)", label: S.detail.supported, color: .green)
+                statBadge(value: "\(total - supported)", label: S.detail.notSupported, color: .orange)
+                statBadge(value: "\(project.sharedGroups.count)", label: S.detail.sharedGroups, color: .blue)
+            }
+        }
+    }
+
+    private func statBadge(value: String, label: String, color: Color) -> some View {
+        VStack(spacing: 2) {
+            Text(value)
+                .font(.title3.bold())
+                .foregroundStyle(color)
+            Text(label)
+                .font(.caption2)
                 .foregroundStyle(.secondary)
         }
+        .frame(width: 56)
     }
 
     // MARK: - Preview
 
     private var previewContent: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 24) {
             previewKeywordsCard
             previewUnifiedPlatformsCard
         }
     }
 
     private var previewKeywordsCard: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
             Label(S.detail.keywords, systemImage: "tag.fill")
-                .font(.headline)
+                .font(.title3.weight(.semibold))
 
             if project.keywords.isEmpty {
                 Text(S.detail.noKeywords)
-                    .font(.subheadline)
+                    .font(.body)
                     .foregroundStyle(.tertiary)
             } else {
-                FlowLayout(spacing: 8) {
+                FlowLayout(spacing: 10) {
                     ForEach(project.keywords, id: \.self) { keyword in
                         Text(keyword)
-                            .font(.subheadline)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 4)
-                            .background(.tint.opacity(0.15))
+                            .font(.body)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 6)
+                            .background(.tint.opacity(0.12))
                             .clipShape(Capsule())
                     }
                 }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
+        .padding(16)
         .background(.background.secondary)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
     private var previewUnifiedPlatformsCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 14) {
             Label(S.detail.platformStatus, systemImage: "arrow.triangle.branch")
-                .font(.headline)
+                .font(.title3.weight(.semibold))
 
             let sharedPlatformIds = Set(project.sharedGroups.flatMap(\.platformIds))
 
             if !project.sharedGroups.isEmpty {
-                VStack(alignment: .leading, spacing: 6) { }
-
                 ForEach(project.sharedGroups) { group in
                     previewSharedGroupRow(group)
                 }
@@ -107,76 +124,76 @@ struct ProjectDetailView: View {
 
             if !standaloneSupported.isEmpty {
                 if !project.sharedGroups.isEmpty {
-                    Divider().padding(.vertical, 2)
+                    Divider().padding(.vertical, 4)
                 }
-                VStack(alignment: .leading, spacing: 6) {
-                    ForEach(standaloneSupported) { status in
-                        previewPlatformRow(status)
-                    }
+                ForEach(standaloneSupported) { status in
+                    previewPlatformRow(status)
                 }
             }
 
             if !standaloneUnsupported.isEmpty {
                 if !project.sharedGroups.isEmpty || !standaloneSupported.isEmpty {
-                    Divider().padding(.vertical, 2)
+                    Divider().padding(.vertical, 4)
                 }
-                VStack(alignment: .leading, spacing: 6) {
-                    ForEach(standaloneUnsupported) { status in
-                        previewPlatformRow(status)
-                    }
-                    .opacity(0.6)
+                ForEach(standaloneUnsupported) { status in
+                    previewPlatformRow(status)
                 }
+                .opacity(0.5)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
+        .padding(16)
         .background(.background.secondary)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
     private func previewSharedGroupRow(_ group: SharedGroup) -> some View {
-        HStack(alignment: .center, spacing: 10) {
+        HStack(alignment: .center, spacing: 14) {
             Image(systemName: "square.on.square")
-                .font(.body)
+                .font(.title2)
                 .foregroundStyle(.blue)
-                .frame(width: 20)
+                .frame(width: 28)
 
-            VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 4) {
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 6) {
                     ForEach(Array(group.platformIds.enumerated()), id: \.offset) { index, pid in
                         let p = store.platforms.first { $0.id == pid }
                         if index > 0 {
-                            Text("+")
-                                .font(.caption2.weight(.bold))
+                            Image(systemName: "plus")
+                                .font(.caption.weight(.bold))
                                 .foregroundStyle(.secondary)
                         }
-                        HStack(spacing: 3) {
+                        HStack(spacing: 4) {
                             Image(systemName: p?.icon ?? "questionmark.square")
-                                .font(.caption)
+                                .font(.body)
                             Text(p?.displayName ?? pid)
-                                .font(.subheadline.weight(.medium))
+                                .font(.body.weight(.semibold))
                         }
                     }
 
                     if !group.name.isEmpty {
                         Text("- \(group.name)")
-                            .font(.subheadline)
+                            .font(.body)
                             .foregroundStyle(.secondary)
                     }
                 }
 
-                HStack(spacing: 4) {
+                HStack(spacing: 6) {
                     if !group.repoName.isEmpty {
-                        Text(group.repoName)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                        HStack(spacing: 3) {
+                            Image(systemName: "folder")
+                                .font(.caption)
+                            Text(group.repoName)
+                                .font(.callout)
+                        }
+                        .foregroundStyle(.secondary)
                     }
 
                     ForEach(group.languages) { lang in
                         Text(lang.displayName)
-                            .font(.caption2)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
+                            .font(.callout)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
                             .background(.tint.opacity(0.12))
                             .clipShape(Capsule())
                     }
@@ -186,47 +203,53 @@ struct ProjectDetailView: View {
             Spacer()
 
             if group.progress > 0 {
-                ProgressView(value: group.progress)
-                    .frame(width: 60)
-                Text("\(Int(group.progress * 100))%")
-                    .font(.caption2.monospacedDigit())
-                    .foregroundStyle(.secondary)
-                    .frame(width: 36, alignment: .trailing)
+                VStack(spacing: 2) {
+                    ProgressView(value: group.progress)
+                        .frame(width: 80)
+                    Text("\(Int(group.progress * 100))%")
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
             }
         }
-        .padding(6)
-        .background(Color.blue.opacity(0.05))
-        .clipShape(RoundedRectangle(cornerRadius: 6))
+        .padding(12)
+        .background(Color.blue.opacity(0.06))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color.blue.opacity(0.2), lineWidth: 1))
     }
 
     private func previewPlatformRow(_ status: PlatformStatus) -> some View {
         let platform = store.platforms.first { $0.id == status.platformId }
 
-        return HStack(alignment: .center, spacing: 10) {
+        return HStack(alignment: .center, spacing: 14) {
             Image(systemName: platform?.icon ?? "questionmark.square")
-                .font(.body)
+                .font(.title2)
                 .foregroundStyle(status.isSupported ? .green : .secondary)
-                .frame(width: 20)
+                .frame(width: 28)
 
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 8) {
                     Text(platform?.displayName ?? status.platformId)
-                        .font(.subheadline.weight(.medium))
+                        .font(.body.weight(.semibold))
 
                     if !status.repoName.isEmpty {
-                        Text(status.repoName)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                        HStack(spacing: 3) {
+                            Image(systemName: "folder")
+                                .font(.caption)
+                            Text(status.repoName)
+                                .font(.callout)
+                        }
+                        .foregroundStyle(.secondary)
                     }
                 }
 
                 if !status.languages.isEmpty {
-                    HStack(spacing: 4) {
+                    HStack(spacing: 6) {
                         ForEach(status.languages) { lang in
                             Text(lang.displayName)
-                                .font(.caption2)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
+                                .font(.callout)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 3)
                                 .background(.tint.opacity(0.12))
                                 .clipShape(Capsule())
                         }
@@ -237,15 +260,16 @@ struct ProjectDetailView: View {
             Spacer()
 
             if status.isSupported, status.progress > 0 {
-                ProgressView(value: status.progress)
-                    .frame(width: 60)
-                Text("\(Int(status.progress * 100))%")
-                    .font(.caption2.monospacedDigit())
-                    .foregroundStyle(.secondary)
-                    .frame(width: 36, alignment: .trailing)
+                VStack(spacing: 2) {
+                    ProgressView(value: status.progress)
+                        .frame(width: 80)
+                    Text("\(Int(status.progress * 100))%")
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 6)
     }
 
     // MARK: - Edit
