@@ -125,19 +125,16 @@ public final class VibeBoardStore: ObservableObject {
         projects[index].platformStatuses.removeAll { $0.platformId == platformId }
     }
 
-    // MARK: - Project Languages
+    // MARK: - Platform Status Languages
 
-    public func setProjectLanguages(_ languages: [Language], projectId: UUID) {
+    public func toggleLanguageInPlatformStatus(_ language: Language, platformId: String, projectId: UUID) {
         guard let index = projects.firstIndex(where: { $0.id == projectId }) else { return }
-        projects[index].languages = languages
-    }
-
-    public func toggleLanguageInProject(_ language: Language, projectId: UUID) {
-        guard let index = projects.firstIndex(where: { $0.id == projectId }) else { return }
-        if let lIndex = projects[index].languages.firstIndex(of: language) {
-            projects[index].languages.remove(at: lIndex)
-        } else {
-            projects[index].languages.append(language)
+        if let pIndex = projects[index].platformStatuses.firstIndex(where: { $0.platformId == platformId }) {
+            if let lIndex = projects[index].platformStatuses[pIndex].languages.firstIndex(of: language) {
+                projects[index].platformStatuses[pIndex].languages.remove(at: lIndex)
+            } else {
+                projects[index].platformStatuses[pIndex].languages.append(language)
+            }
         }
     }
 
@@ -198,7 +195,9 @@ public final class VibeBoardStore: ObservableObject {
     public func removeLanguage(id: String) {
         languages.removeAll { $0.id == id }
         for index in projects.indices {
-            projects[index].languages.removeAll { $0.id == id }
+            for pIndex in projects[index].platformStatuses.indices {
+                projects[index].platformStatuses[pIndex].languages.removeAll { $0.id == id }
+            }
         }
     }
 

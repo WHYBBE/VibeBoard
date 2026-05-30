@@ -10,7 +10,6 @@ struct ProjectDetailView: View {
             VStack(alignment: .leading, spacing: 24) {
                 projectNameSection
                 keywordsSection
-                languagesSection
                 platformStatusesSection
             }
             .padding()
@@ -50,23 +49,6 @@ struct ProjectDetailView: View {
         }
     }
 
-    private var languagesSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Label(S.detail.languages, systemImage: "text.code")
-                .font(.headline)
-
-            FlowLayout(spacing: 8) {
-                ForEach(store.enabledLanguages) { language in
-                    LanguageToggleTag(
-                        language: language,
-                        isSelected: project.languages.contains(language),
-                        onToggle: { store.toggleLanguageInProject(language, projectId: project.id) }
-                    )
-                }
-            }
-        }
-    }
-
     private var platformStatusesSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -102,28 +84,5 @@ struct ProjectDetailView: View {
         guard !trimmed.isEmpty else { return }
         store.addKeyword(trimmed, projectId: project.id)
         newKeyword = ""
-    }
-}
-
-struct LanguageToggleTag: View {
-    let language: Language
-    let isSelected: Bool
-    let onToggle: () -> Void
-
-    var body: some View {
-        Button(action: onToggle) {
-            HStack(spacing: 4) {
-                Text(language.displayName)
-                    .font(.subheadline)
-                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .font(.caption2)
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 4)
-            .background(isSelected ? Color.accentColor.opacity(0.2) : Color.gray.opacity(0.1))
-            .clipShape(Capsule())
-        }
-        .buttonStyle(.plain)
-        .foregroundStyle(isSelected ? .primary : .secondary)
     }
 }

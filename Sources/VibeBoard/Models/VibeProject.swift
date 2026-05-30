@@ -4,7 +4,6 @@ public struct VibeProject: Identifiable, Codable, Equatable {
     public var id: UUID
     public var name: String
     public var keywords: [String]
-    public var languages: [Language]
     public var platformStatuses: [PlatformStatus]
     public var createdAt: Date
 
@@ -12,7 +11,6 @@ public struct VibeProject: Identifiable, Codable, Equatable {
         id: UUID = UUID(),
         name: String,
         keywords: [String] = [],
-        languages: [Language] = [],
         platformStatuses: [PlatformStatus]? = nil,
         platforms: [Platform]? = nil,
         createdAt: Date = Date()
@@ -20,7 +18,6 @@ public struct VibeProject: Identifiable, Codable, Equatable {
         self.id = id
         self.name = name
         self.keywords = keywords
-        self.languages = languages
         self.platformStatuses = platformStatuses ?? (platforms ?? Platform.builtInAll).map { PlatformStatus(platform: $0) }
         self.createdAt = createdAt
     }
