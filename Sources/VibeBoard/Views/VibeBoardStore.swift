@@ -8,9 +8,42 @@ public final class VibeBoardStore: ObservableObject {
     @Published public var platforms: [Platform]
     @Published public var languages: [Language]
 
+    private let saveURL: URL
+    private var saveCancellable: AnyCancellable?
+
     public init() {
-        self.platforms = Platform.builtInAll
-        self.languages = Language.builtInAll
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let dir = appSupport.appendingPathComponent("VibeBoard", isDirectory: true)
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        self.saveURL = dir.appendingPathComponent("store.json")
+
+        if let data = try? Data(contentsOf: saveURL),
+           let decoded = try? JSONDecoder().decode(StoreSnapshot.self, from: data) {
+            self.projects = decoded.projects
+            self.selectedProjectId = decoded.selectedProjectId
+            self.platforms = decoded.platforms
+            self.languages = decoded.languages
+        } else {
+            self.platforms = Platform.builtInAll
+            self.languages = Language.builtInAll
+        }
+
+        saveCancellable = objectWillChange
+            .debounce(for: .milliseconds(500), scheduler: RunLoop.main)
+            .sink { [weak self] in
+                self?.saveNow()
+            }
+    }
+
+    private func saveNow() {
+        let snapshot = StoreSnapshot(
+            projects: projects,
+            selectedProjectId: selectedProjectId,
+            platforms: platforms,
+            languages: languages
+        )
+        guard let data = try? JSONEncoder().encode(snapshot) else { return }
+        try? data.write(to: saveURL, options: .atomic)
     }
 
     public var selectedProject: VibeProject? {
@@ -18,13 +51,8 @@ public final class VibeBoardStore: ObservableObject {
         return projects.first { $0.id == id }
     }
 
-    public var enabledPlatforms: [Platform] {
-        platforms.filter(\.isEnabled)
-    }
-
-    public var enabledLanguages: [Language] {
-        languages.filter(\.isEnabled)
-    }
+    public var enabledPlatforms: [Platform] { platforms.filter(\.isEnabled) }
+    public var enabledLanguages: [Language] { languages.filter(\.isEnabled) }
 
     // MARK: - Project CRUD
 
@@ -35,9 +63,7 @@ public final class VibeBoardStore: ObservableObject {
 
     public func deleteProject(_ id: UUID) {
         projects.removeAll { $0.id == id }
-        if selectedProjectId == id {
-            selectedProjectId = projects.first?.id
-        }
+        if selectedProjectId == id { selectedProjectId = projects.first?.id }
     }
 
     public func updateProject(_ project: VibeProject) {
@@ -168,4 +194,11 @@ public final class VibeBoardStore: ObservableObject {
             languages[index] = language
         }
     }
+}
+
+private struct StoreSnapshot: Codable {
+    var projects: [VibeProject]
+    var selectedProjectId: UUID?
+    var platforms: [Platform]
+    var languages: [Language]
 }
