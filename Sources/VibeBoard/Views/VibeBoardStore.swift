@@ -138,6 +138,36 @@ public final class VibeBoardStore: ObservableObject {
         }
     }
 
+    // MARK: - Shared Groups
+
+    public func addSharedGroup(_ group: SharedGroup, projectId: UUID) {
+        guard let index = projects.firstIndex(where: { $0.id == projectId }) else { return }
+        projects[index].sharedGroups.append(group)
+    }
+
+    public func removeSharedGroup(_ groupId: UUID, projectId: UUID) {
+        guard let index = projects.firstIndex(where: { $0.id == projectId }) else { return }
+        projects[index].sharedGroups.removeAll { $0.id == groupId }
+    }
+
+    public func updateSharedGroup(_ group: SharedGroup, projectId: UUID) {
+        guard let index = projects.firstIndex(where: { $0.id == projectId }) else { return }
+        if let gIndex = projects[index].sharedGroups.firstIndex(where: { $0.id == group.id }) {
+            projects[index].sharedGroups[gIndex] = group
+        }
+    }
+
+    public func toggleLanguageInSharedGroup(_ language: Language, groupId: UUID, projectId: UUID) {
+        guard let index = projects.firstIndex(where: { $0.id == projectId }) else { return }
+        if let gIndex = projects[index].sharedGroups.firstIndex(where: { $0.id == groupId }) {
+            if let lIndex = projects[index].sharedGroups[gIndex].languages.firstIndex(of: language) {
+                projects[index].sharedGroups[gIndex].languages.remove(at: lIndex)
+            } else {
+                projects[index].sharedGroups[gIndex].languages.append(language)
+            }
+        }
+    }
+
     // MARK: - Project Keywords
 
     public func setProjectKeywords(_ keywords: [String], projectId: UUID) {

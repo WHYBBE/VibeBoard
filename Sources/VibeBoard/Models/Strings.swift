@@ -36,6 +36,12 @@ public struct S {
         var notSupported: String { S.isZh ? "未支持" : "Not Supported" }
         var progress: String { S.isZh ? "进度" : "Progress" }
         var noKeywords: String { S.isZh ? "暂无关键词" : "No keywords" }
+        var sharedGroups: String { S.isZh ? "共享代码" : "Shared Code" }
+        var addSharedGroup: String { S.isZh ? "添加共享组" : "Add Shared Group" }
+        var sharedGroupName: String { S.isZh ? "组名" : "Group Name" }
+        var sharedGroupPlatforms: String { S.isZh ? "共享平台" : "Shared Platforms" }
+        var sharedGroupRepo: String { S.isZh ? "共享仓库" : "Shared Repo" }
+        var deleteGroup: String { S.isZh ? "删除此组" : "Delete Group" }
     }
 
     public static var settings: Settings { .init() }
