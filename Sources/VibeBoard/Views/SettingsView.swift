@@ -28,6 +28,11 @@ public struct SettingsView: View {
 
 struct GeneralSettingsTab: View {
     @ObservedObject var store: VibeBoardStore
+    @State private var showExportPanel = false
+    @State private var showImportPanel = false
+    @State private var alertTitle = ""
+    @State private var alertMessage = ""
+    @State private var showAlert = false
 
     var body: some View {
         Form {
@@ -52,8 +57,50 @@ struct GeneralSettingsTab: View {
                 }
                 .pickerStyle(.segmented)
             }
+
+            Section(S.settings.dataManagement) {
+                HStack {
+                    Label(S.settings.dataManagement, systemImage: "externaldrive")
+                    Spacer()
+                    Button(S.settings.exportData) { showExportPanel = true }
+                    Button(S.settings.importData) { showImportPanel = true }
+                }
+            }
         }
         .formStyle(.grouped)
+        .fileExporter(isPresented: $showExportPanel, document: VibeBoardDocument(data: store.exportData() ?? Data()), contentType: .json, defaultFilename: "VibeBoard-backup") { result in
+            switch result {
+            case .success:
+                alertTitle = S.settings.exportSuccess
+                alertMessage = ""
+            case .failure:
+                alertTitle = S.settings.exportFail
+                alertMessage = ""
+            }
+            showAlert = true
+        }
+        .fileImporter(isPresented: $showImportPanel, allowedContentTypes: [.json], allowsMultipleSelection: false) { result in
+            switch result {
+            case .success(let urls):
+                guard let url = urls.first else { return }
+                if let data = try? Data(contentsOf: url), store.importData(data) {
+                    alertTitle = S.settings.importSuccess
+                    alertMessage = ""
+                } else {
+                    alertTitle = S.settings.importFail
+                    alertMessage = ""
+                }
+            case .failure:
+                alertTitle = S.settings.importFail
+                alertMessage = ""
+            }
+            showAlert = true
+        }
+        .alert(alertTitle, isPresented: $showAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(alertMessage)
+        }
     }
 }
 

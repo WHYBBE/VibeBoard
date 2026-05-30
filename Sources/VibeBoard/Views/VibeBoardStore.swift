@@ -213,6 +213,34 @@ public final class VibeBoardStore: ObservableObject {
             languages[index] = language
         }
     }
+
+    // MARK: - Import / Export
+
+    public func exportData() -> Data? {
+        let snapshot = StoreSnapshot(
+            projects: projects,
+            selectedProjectId: selectedProjectId,
+            platforms: platforms,
+            languages: languages,
+            appLanguage: appLanguage,
+            appTheme: appTheme
+        )
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        return try? encoder.encode(snapshot)
+    }
+
+    public func importData(_ data: Data) -> Bool {
+        guard let decoded = try? JSONDecoder().decode(StoreSnapshot.self, from: data) else { return false }
+        projects = decoded.projects
+        selectedProjectId = decoded.selectedProjectId
+        platforms = decoded.platforms
+        languages = decoded.languages
+        appLanguage = decoded.appLanguage ?? .zh
+        appTheme = decoded.appTheme ?? .system
+        S.lang = appLanguage
+        return true
+    }
 }
 
 private struct StoreSnapshot: Codable {

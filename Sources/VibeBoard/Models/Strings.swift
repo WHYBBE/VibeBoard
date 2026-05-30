@@ -50,5 +50,12 @@ public struct S {
         var themeSystem: String { S.isZh ? "跟随系统" : "System" }
         var themeLight: String { S.isZh ? "浅色" : "Light" }
         var themeDark: String { S.isZh ? "深色" : "Dark" }
+        var exportData: String { S.isZh ? "导出数据" : "Export Data" }
+        var importData: String { S.isZh ? "导入数据" : "Import Data" }
+        var exportSuccess: String { S.isZh ? "导出成功" : "Export Succeeded" }
+        var exportFail: String { S.isZh ? "导出失败" : "Export Failed" }
+        var importSuccess: String { S.isZh ? "导入成功" : "Import Succeeded" }
+        var importFail: String { S.isZh ? "导入失败：文件格式无效" : "Import Failed: Invalid file format" }
+        var dataManagement: String { S.isZh ? "数据管理" : "Data Management" }
     }
 }
