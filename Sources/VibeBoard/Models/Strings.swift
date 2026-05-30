@@ -57,5 +57,9 @@ public struct S {
         var importSuccess: String { S.isZh ? "导入成功" : "Import Succeeded" }
         var importFail: String { S.isZh ? "导入失败：文件格式无效" : "Import Failed: Invalid file format" }
         var dataManagement: String { S.isZh ? "数据管理" : "Data Management" }
+        var clearData: String { S.isZh ? "清空数据" : "Clear Data" }
+        var clearConfirmTitle: String { S.isZh ? "确认清空" : "Confirm Clear" }
+        var clearConfirmMessage: String { S.isZh ? "将删除所有项目、自定义平台和语言，不可恢复。确定继续？" : "All projects, custom platforms and languages will be deleted. This cannot be undone. Continue?" }
+        var clearSuccess: String { S.isZh ? "已清空" : "Cleared" }
     }
 }

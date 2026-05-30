@@ -30,6 +30,7 @@ struct GeneralSettingsTab: View {
     @ObservedObject var store: VibeBoardStore
     @State private var showExportPanel = false
     @State private var showImportPanel = false
+    @State private var showClearConfirm = false
     @State private var alertTitle = ""
     @State private var alertMessage = ""
     @State private var showAlert = false
@@ -64,6 +65,7 @@ struct GeneralSettingsTab: View {
                     Spacer()
                     Button(S.settings.exportData) { showExportPanel = true }
                     Button(S.settings.importData) { showImportPanel = true }
+                    Button(S.settings.clearData, role: .destructive) { showClearConfirm = true }
                 }
             }
         }
@@ -100,6 +102,17 @@ struct GeneralSettingsTab: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text(alertMessage)
+        }
+        .alert(S.settings.clearConfirmTitle, isPresented: $showClearConfirm) {
+            Button(S.settings.clearData, role: .destructive) {
+                store.clearAll()
+                alertTitle = S.settings.clearSuccess
+                alertMessage = ""
+                showAlert = true
+            }
+            Button(S.sidebar.cancel, role: .cancel) {}
+        } message: {
+            Text(S.settings.clearConfirmMessage)
         }
     }
 }

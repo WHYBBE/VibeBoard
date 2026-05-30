@@ -241,6 +241,13 @@ public final class VibeBoardStore: ObservableObject {
         S.lang = appLanguage
         return true
     }
+
+    public func clearAll() {
+        projects = []
+        selectedProjectId = nil
+        platforms = Platform.builtInAll
+        languages = Language.builtInAll
+    }
 }
 
 private struct StoreSnapshot: Codable {
