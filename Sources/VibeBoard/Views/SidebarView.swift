@@ -57,7 +57,8 @@ struct NewProjectSheet: View {
                     .keyboardShortcut(.cancelAction)
 
                 Button(S.sidebar.create) {
-                    let project = VibeProject(name: name, platforms: store.enabledPlatforms)
+                    let project = VibeProject(name: name, platforms: store.platforms)
+
                     store.addProject(project)
                     dismiss()
                 }

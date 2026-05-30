@@ -156,7 +156,7 @@ struct PlatformCard: View {
             HStack(spacing: 10) {
                 Image(systemName: platform.icon)
                     .font(.title3)
-                    .foregroundStyle(platform.isEnabled ? Color.accentColor : .secondary)
+                    .foregroundStyle(Color.accentColor)
                     .frame(width: 24)
 
                 Text(platform.displayName)
@@ -164,9 +164,8 @@ struct PlatformCard: View {
 
                 Spacer()
 
-                Toggle("", isOn: $platform.isEnabled)
+                Toggle(S.settings.defaultEnabled, isOn: $platform.isEnabled)
                     .toggleStyle(.switch)
-                    .labelsHidden()
 
                 Button {
                     withAnimation(.easeInOut(duration: 0.15)) { expanded.toggle() }
@@ -357,7 +356,7 @@ struct LanguageCard: View {
             HStack(spacing: 10) {
                 Image(systemName: language.icon)
                     .font(.title3)
-                    .foregroundStyle(language.isEnabled ? Color.accentColor : .secondary)
+                    .foregroundStyle(Color.accentColor)
                     .frame(width: 24)
 
                 Text(language.displayName)
@@ -365,9 +364,8 @@ struct LanguageCard: View {
 
                 Spacer()
 
-                Toggle("", isOn: $language.isEnabled)
+                Toggle(S.settings.defaultEnabled, isOn: $language.isEnabled)
                     .toggleStyle(.switch)
-                    .labelsHidden()
 
                 Button {
                     withAnimation(.easeInOut(duration: 0.15)) { expanded.toggle() }

@@ -58,7 +58,7 @@ struct ProjectDetailView: View {
                 Spacer()
 
                 Menu {
-                    ForEach(store.enabledPlatforms.filter { p in
+                    ForEach(store.platforms.filter { p in
                         !project.platformStatuses.contains(where: { $0.platformId == p.id })
                     }) { platform in
                         Button(platform.displayName) {
@@ -68,7 +68,7 @@ struct ProjectDetailView: View {
                 } label: {
                     Label(S.detail.addPlatform, systemImage: "plus.circle")
                 }
-                .disabled(store.enabledPlatforms.filter { p in
+                .disabled(store.platforms.filter { p in
                     !project.platformStatuses.contains(where: { $0.platformId == p.id })
                 }.isEmpty)
             }

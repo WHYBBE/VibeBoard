@@ -51,9 +51,9 @@ struct PlatformStatusRow: View {
                 .buttonStyle(.borderless)
             }
 
-            if !store.enabledLanguages.isEmpty {
+            if !store.languages.isEmpty {
                 FlowLayout(spacing: 6) {
-                    ForEach(store.enabledLanguages) { language in
+                    ForEach(store.languages) { language in
                         LanguageToggleTag(
                             language: language,
                             isSelected: status.languages.contains(language),

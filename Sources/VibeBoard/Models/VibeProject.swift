@@ -18,7 +18,7 @@ public struct VibeProject: Identifiable, Codable, Equatable {
         self.id = id
         self.name = name
         self.keywords = keywords
-        self.platformStatuses = platformStatuses ?? (platforms ?? Platform.builtInAll).map { PlatformStatus(platform: $0) }
+        self.platformStatuses = platformStatuses ?? (platforms ?? Platform.builtInAll).map { PlatformStatus(platform: $0, isSupported: $0.isEnabled) }
         self.createdAt = createdAt
     }
 

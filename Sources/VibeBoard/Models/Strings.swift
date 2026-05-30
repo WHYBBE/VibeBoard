@@ -45,6 +45,7 @@ public struct S {
         var addCustomPlatform: String { S.isZh ? "添加自定义平台" : "Add Custom Platform" }
         var addCustomLanguage: String { S.isZh ? "添加自定义语言" : "Add Custom Language" }
         var customize: String { S.isZh ? "自定义..." : "Custom..." }
+        var defaultEnabled: String { S.isZh ? "默认启用" : "Default On" }
         var appLanguage: String { S.isZh ? "界面语言" : "Interface Language" }
         var theme: String { S.isZh ? "主题" : "Theme" }
         var themeSystem: String { S.isZh ? "跟随系统" : "System" }

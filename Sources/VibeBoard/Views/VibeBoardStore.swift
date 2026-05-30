@@ -117,7 +117,7 @@ public final class VibeBoardStore: ObservableObject {
     public func addPlatformStatusToProject(_ platform: Platform, projectId: UUID) {
         guard let index = projects.firstIndex(where: { $0.id == projectId }) else { return }
         if projects[index].platformStatuses.contains(where: { $0.platformId == platform.id }) { return }
-        projects[index].platformStatuses.append(PlatformStatus(platform: platform))
+        projects[index].platformStatuses.append(PlatformStatus(platform: platform, isSupported: platform.isEnabled))
     }
 
     public func removePlatformStatusFromProject(_ platformId: String, projectId: UUID) {
