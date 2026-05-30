@@ -7,6 +7,8 @@ public final class VibeBoardStore: ObservableObject {
     @Published public var selectedProjectId: UUID?
     @Published public var platforms: [Platform]
     @Published public var languages: [Language]
+    @Published public var appLanguage: AppLanguage
+    @Published public var appTheme: AppTheme
 
     private let saveURL: URL
     private var saveCancellable: AnyCancellable?
@@ -23,24 +25,41 @@ public final class VibeBoardStore: ObservableObject {
             self.selectedProjectId = decoded.selectedProjectId
             self.platforms = decoded.platforms
             self.languages = decoded.languages
+            self.appLanguage = decoded.appLanguage ?? .zh
+            self.appTheme = decoded.appTheme ?? .system
         } else {
             self.platforms = Platform.builtInAll
             self.languages = Language.builtInAll
+            self.appLanguage = .zh
+            self.appTheme = .system
         }
+
+        S.lang = appLanguage
 
         saveCancellable = objectWillChange
             .debounce(for: .milliseconds(500), scheduler: RunLoop.main)
             .sink { [weak self] in
                 self?.saveNow()
             }
+
+        langCancellable = $appLanguage
+            .debounce(for: .milliseconds(100), scheduler: RunLoop.main)
+            .sink { [weak self] lang in
+                S.lang = lang
+                self?.objectWillChange.send()
+            }
     }
+
+    private var langCancellable: AnyCancellable?
 
     private func saveNow() {
         let snapshot = StoreSnapshot(
             projects: projects,
             selectedProjectId: selectedProjectId,
             platforms: platforms,
-            languages: languages
+            languages: languages,
+            appLanguage: appLanguage,
+            appTheme: appTheme
         )
         guard let data = try? JSONEncoder().encode(snapshot) else { return }
         try? data.write(to: saveURL, options: .atomic)
@@ -201,4 +220,6 @@ private struct StoreSnapshot: Codable {
     var selectedProjectId: UUID?
     var platforms: [Platform]
     var languages: [Language]
+    var appLanguage: AppLanguage?
+    var appTheme: AppTheme?
 }

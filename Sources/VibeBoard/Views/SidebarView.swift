@@ -20,16 +20,16 @@ struct SidebarView: View {
         .overlay {
             if store.projects.isEmpty {
                 ContentUnavailableView(
-                    "没有项目",
+                    S.sidebar.noProject,
                     systemImage: "folder.badge.plus",
-                    description: Text("点击 + 创建一个新项目")
+                    description: Text(S.sidebar.noProjectHint)
                 )
             }
         }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button(action: { showingNewProject = true }) {
-                    Label("新建项目", systemImage: "plus")
+                    Label(S.sidebar.newProject, systemImage: "plus")
                 }
             }
         }
@@ -46,17 +46,17 @@ struct NewProjectSheet: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            Text("新建项目")
+            Text(S.sidebar.newProject)
                 .font(.headline)
 
-            TextField("项目名称", text: $name)
+            TextField(S.sidebar.projectName, text: $name)
                 .textFieldStyle(.roundedBorder)
 
             HStack {
-                Button("取消") { dismiss() }
+                Button(S.sidebar.cancel) { dismiss() }
                     .keyboardShortcut(.cancelAction)
 
-                Button("创建") {
+                Button(S.sidebar.create) {
                     let project = VibeProject(name: name, languages: [], platforms: store.enabledPlatforms)
                     store.addProject(project)
                     dismiss()

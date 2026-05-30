@@ -9,13 +9,60 @@ public struct SettingsView: View {
 
     public var body: some View {
         TabView {
-            Tab("平台", systemImage: "desktopcomputer") {
+            Tab(S.settings.general, systemImage: "gear") {
+                GeneralSettingsTab(store: store)
+            }
+
+            Tab(S.settings.platform, systemImage: "desktopcomputer") {
                 PlatformSettingsTab(store: store)
             }
 
-            Tab("语言", systemImage: "chevron.left.forwardslash.chevron.right") {
+            Tab(S.settings.language, systemImage: "chevron.left.forwardslash.chevron.right") {
                 LanguageSettingsTab(store: store)
             }
+        }
+    }
+}
+
+// MARK: - General
+
+struct GeneralSettingsTab: View {
+    @ObservedObject var store: VibeBoardStore
+
+    var body: some View {
+        Form {
+            Section(S.settings.appLanguage) {
+                Picker(selection: $store.appLanguage) {
+                    ForEach(AppLanguage.allCases) { lang in
+                        Text(lang.displayName).tag(lang)
+                    }
+                } label: {
+                    Label(S.settings.appLanguage, systemImage: "globe")
+                }
+                .pickerStyle(.segmented)
+            }
+
+            Section(S.settings.theme) {
+                Picker(selection: $store.appTheme) {
+                    ForEach(AppTheme.allCases) { theme in
+                        Text(theme.localizedName).tag(theme)
+                    }
+                } label: {
+                    Label(S.settings.theme, systemImage: "circle.lefthalf.filled")
+                }
+                .pickerStyle(.segmented)
+            }
+        }
+        .formStyle(.grouped)
+    }
+}
+
+extension AppTheme {
+    var localizedName: String {
+        switch self {
+        case .system: return S.settings.themeSystem
+        case .light: return S.settings.themeLight
+        case .dark: return S.settings.themeDark
         }
     }
 }
@@ -76,15 +123,15 @@ struct PlatformCard: View {
                 Divider().padding(.horizontal, 12)
 
                 VStack(alignment: .leading, spacing: 10) {
-                    FieldRow(label: "图标") {
+                    FieldRow(label: S.settings.icon) {
                         IconPicker(selection: $platform.icon)
                     }
-                    FieldRow(label: "名称") {
+                    FieldRow(label: S.settings.name) {
                         TextField("", text: $platform.displayName)
                             .textFieldStyle(.roundedBorder)
                             .frame(maxWidth: 160)
                     }
-                    FieldRow(label: "仓库名") {
+                    FieldRow(label: S.settings.repoName) {
                         TextField("", text: $platform.defaultRepoName)
                             .textFieldStyle(.roundedBorder)
                             .frame(maxWidth: 160)
@@ -95,7 +142,7 @@ struct PlatformCard: View {
                 if !platform.isBuiltIn {
                     HStack {
                         Spacer()
-                        Button("删除此平台", role: .destructive) {
+                        Button(S.settings.deletePlatform, role: .destructive) {
                             store.removePlatform(id: platform.id)
                         }
                         .controlSize(.small)
@@ -117,18 +164,18 @@ struct AddPlatformCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("添加自定义平台")
+            Text(S.settings.addCustomPlatform)
                 .font(.headline)
 
-            FieldRow(label: "图标") {
+            FieldRow(label: S.settings.icon) {
                 IconPicker(selection: $draft.icon)
             }
-            FieldRow(label: "名称") {
+            FieldRow(label: S.settings.name) {
                 TextField("", text: $draft.name)
                     .textFieldStyle(.roundedBorder)
                     .frame(maxWidth: 160)
             }
-            FieldRow(label: "仓库名") {
+            FieldRow(label: S.settings.repoName) {
                 TextField("", text: $draft.repoName)
                     .textFieldStyle(.roundedBorder)
                     .frame(maxWidth: 160)
@@ -136,7 +183,7 @@ struct AddPlatformCard: View {
 
             HStack {
                 Spacer()
-                Button("添加") {
+                Button(S.detail.add) {
                     let p = Platform(
                         id: draft.name.trimmingCharacters(in: .whitespaces),
                         displayName: draft.name.trimmingCharacters(in: .whitespaces),
@@ -200,7 +247,7 @@ struct IconPicker: View {
                     }
                 }
                 Divider()
-                Button("自定义...") { customIcon = selection }
+                Button(S.settings.customize) { customIcon = selection }
             } label: {
                 Image(systemName: selection.isEmpty ? "desktopcomputer" : selection)
                     .frame(width: 24, height: 24)
@@ -277,10 +324,10 @@ struct LanguageCard: View {
                 Divider().padding(.horizontal, 12)
 
                 VStack(alignment: .leading, spacing: 10) {
-                    FieldRow(label: "图标") {
+                    FieldRow(label: S.settings.icon) {
                         IconPicker(selection: $language.icon)
                     }
-                    FieldRow(label: "显示名") {
+                    FieldRow(label: S.settings.displayName) {
                         TextField("", text: $language.displayName)
                             .textFieldStyle(.roundedBorder)
                             .frame(maxWidth: 160)
@@ -291,7 +338,7 @@ struct LanguageCard: View {
                 if !language.isBuiltIn {
                     HStack {
                         Spacer()
-                        Button("删除此语言", role: .destructive) {
+                        Button(S.settings.deleteLanguage, role: .destructive) {
                             store.removeLanguage(id: language.id)
                         }
                         .controlSize(.small)
@@ -314,13 +361,13 @@ struct AddLanguageCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("添加自定义语言")
+            Text(S.settings.addCustomLanguage)
                 .font(.headline)
 
-            FieldRow(label: "图标") {
+            FieldRow(label: S.settings.icon) {
                 IconPicker(selection: $draftIcon)
             }
-            FieldRow(label: "显示名") {
+            FieldRow(label: S.settings.displayName) {
                 TextField("", text: $draftName)
                     .textFieldStyle(.roundedBorder)
                     .frame(maxWidth: 160)
@@ -328,7 +375,7 @@ struct AddLanguageCard: View {
 
             HStack {
                 Spacer()
-                Button("添加") {
+                Button(S.detail.add) {
                     let l = Language(
                         id: draftName.trimmingCharacters(in: .whitespaces),
                         displayName: draftName.trimmingCharacters(in: .whitespaces).ifEmpty(nil),

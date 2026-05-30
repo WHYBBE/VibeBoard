@@ -21,7 +21,7 @@ struct ProjectRow: View {
 
                     let supported = project.platformStatuses.filter(\.isSupported).count
                     let total = project.platformStatuses.count
-                    Text("\(supported)/\(total) 平台")
+                    Text("\(supported)/\(total) \(S.detail.platformCount)")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }

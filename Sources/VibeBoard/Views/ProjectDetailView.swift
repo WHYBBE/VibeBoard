@@ -19,16 +19,16 @@ struct ProjectDetailView: View {
 
     private var projectNameSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label("项目名称", systemImage: "folder.fill")
+            Label(S.detail.projectName, systemImage: "folder.fill")
                 .font(.headline)
-            TextField("输入项目名称", text: $project.name)
+            TextField(S.detail.projectNamePlaceholder, text: $project.name)
                 .textFieldStyle(.roundedBorder)
         }
     }
 
     private var keywordsSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label("需求关键词", systemImage: "tag.fill")
+            Label(S.detail.keywords, systemImage: "tag.fill")
                 .font(.headline)
 
             FlowLayout(spacing: 8) {
@@ -40,11 +40,11 @@ struct ProjectDetailView: View {
             }
 
             HStack {
-                TextField("添加关键词", text: $newKeyword)
+                TextField(S.detail.addKeyword, text: $newKeyword)
                     .textFieldStyle(.roundedBorder)
                     .onSubmit { addKeyword() }
 
-                Button("添加", action: addKeyword)
+                Button(S.detail.add, action: addKeyword)
                     .disabled(newKeyword.trimmingCharacters(in: .whitespaces).isEmpty)
             }
         }
@@ -52,7 +52,7 @@ struct ProjectDetailView: View {
 
     private var languagesSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label("开发语言", systemImage: "text.code")
+            Label(S.detail.languages, systemImage: "text.code")
                 .font(.headline)
 
             FlowLayout(spacing: 8) {
@@ -70,7 +70,7 @@ struct ProjectDetailView: View {
     private var platformStatusesSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Label("各平台实现情况", systemImage: "arrow.triangle.branch")
+                Label(S.detail.platformStatus, systemImage: "arrow.triangle.branch")
                     .font(.headline)
 
                 Spacer()
@@ -84,7 +84,7 @@ struct ProjectDetailView: View {
                         }
                     }
                 } label: {
-                    Label("添加平台", systemImage: "plus.circle")
+                    Label(S.detail.addPlatform, systemImage: "plus.circle")
                 }
                 .disabled(store.enabledPlatforms.filter { p in
                     !project.platformStatuses.contains(where: { $0.platformId == p.id })

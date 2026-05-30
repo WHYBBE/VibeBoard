@@ -18,10 +18,14 @@ struct VibeBoardApp: App {
     var body: some Scene {
         WindowGroup {
             VibeBoardView(store: store)
+                .environment(\.locale, store.appLanguage.locale)
+                .preferredColorScheme(store.appTheme.colorScheme)
         }
 
         Settings {
             SettingsView(store: store)
+                .environment(\.locale, store.appLanguage.locale)
+                .preferredColorScheme(store.appTheme.colorScheme)
         }
     }
 }

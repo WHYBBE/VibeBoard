@@ -1,0 +1,54 @@
+import SwiftUI
+
+public struct S {
+    nonisolated(unsafe) public static var lang: AppLanguage = .zh
+    private static var isZh: Bool { lang == .zh }
+
+    public static var sidebar: Sidebar { .init() }
+    public struct Sidebar {
+        var noProject: String { S.isZh ? "没有项目" : "No Projects" }
+        var noProjectHint: String { S.isZh ? "点击 + 创建一个新项目" : "Click + to create a new project" }
+        var newProject: String { S.isZh ? "新建项目" : "New Project" }
+        var cancel: String { S.isZh ? "取消" : "Cancel" }
+        var create: String { S.isZh ? "创建" : "Create" }
+        var projectName: String { S.isZh ? "项目名称" : "Project Name" }
+    }
+
+    public static var detail: Detail { .init() }
+    public struct Detail {
+        var selectProject: String { S.isZh ? "选择一个项目" : "Select a Project" }
+        var selectProjectHint: String { S.isZh ? "从左侧选择或创建一个项目" : "Select or create a project from the sidebar" }
+        var projectName: String { S.isZh ? "项目名称" : "Project Name" }
+        var projectNamePlaceholder: String { S.isZh ? "输入项目名称" : "Enter project name" }
+        var keywords: String { S.isZh ? "需求关键词" : "Keywords" }
+        var addKeyword: String { S.isZh ? "添加关键词" : "Add keyword" }
+        var add: String { S.isZh ? "添加" : "Add" }
+        var languages: String { S.isZh ? "开发语言" : "Languages" }
+        var platformStatus: String { S.isZh ? "各平台实现情况" : "Platform Status" }
+        var addPlatform: String { S.isZh ? "添加平台" : "Add Platform" }
+        var repoName: String { S.isZh ? "仓库名" : "Repo Name" }
+        var implemented: String { S.isZh ? "已实现" : "Done" }
+        var platformCount: String { S.isZh ? "平台" : "platforms" }
+    }
+
+    public static var settings: Settings { .init() }
+    public struct Settings {
+        var general: String { S.isZh ? "通用" : "General" }
+        var platform: String { S.isZh ? "平台" : "Platforms" }
+        var language: String { S.isZh ? "语言" : "Languages" }
+        var icon: String { S.isZh ? "图标" : "Icon" }
+        var name: String { S.isZh ? "名称" : "Name" }
+        var repoName: String { S.isZh ? "仓库名" : "Repo Name" }
+        var displayName: String { S.isZh ? "显示名" : "Display Name" }
+        var deletePlatform: String { S.isZh ? "删除此平台" : "Delete Platform" }
+        var deleteLanguage: String { S.isZh ? "删除此语言" : "Delete Language" }
+        var addCustomPlatform: String { S.isZh ? "添加自定义平台" : "Add Custom Platform" }
+        var addCustomLanguage: String { S.isZh ? "添加自定义语言" : "Add Custom Language" }
+        var customize: String { S.isZh ? "自定义..." : "Custom..." }
+        var appLanguage: String { S.isZh ? "界面语言" : "Interface Language" }
+        var theme: String { S.isZh ? "主题" : "Theme" }
+        var themeSystem: String { S.isZh ? "跟随系统" : "System" }
+        var themeLight: String { S.isZh ? "浅色" : "Light" }
+        var themeDark: String { S.isZh ? "深色" : "Dark" }
+    }
+}

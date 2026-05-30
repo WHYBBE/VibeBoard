@@ -16,9 +16,9 @@ public struct VibeBoardView: View {
                 ProjectDetailView(store: store, project: $store.projects[index])
             } else {
                 ContentUnavailableView(
-                    "选择一个项目",
+                    S.detail.selectProject,
                     systemImage: "arrow.left",
-                    description: Text("从左侧选择或创建一个项目")
+                    description: Text(S.detail.selectProjectHint)
                 )
             }
         }

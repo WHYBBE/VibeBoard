@@ -21,7 +21,7 @@ struct PlatformStatusRow: View {
                     .font(.headline)
 
                 HStack(spacing: 8) {
-                    TextField("仓库名", text: $status.repoName)
+                    TextField(S.detail.repoName, text: $status.repoName)
                         .textFieldStyle(.roundedBorder)
                         .frame(maxWidth: 200)
                 }
@@ -29,7 +29,7 @@ struct PlatformStatusRow: View {
 
             Spacer()
 
-            Toggle("已实现", isOn: $status.isSupported)
+            Toggle(S.detail.implemented, isOn: $status.isSupported)
                 .toggleStyle(.switch)
                 .labelsHidden()
 
