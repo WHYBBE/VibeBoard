@@ -12,6 +12,7 @@ public struct S {
         var cancel: String { S.isZh ? "取消" : "Cancel" }
         var create: String { S.isZh ? "创建" : "Create" }
         var projectName: String { S.isZh ? "项目名称" : "Project Name" }
+        var deleteProject: String { S.isZh ? "删除项目" : "Delete Project" }
     }
 
     public static var detail: Detail { .init() }

@@ -9,6 +9,13 @@ struct SidebarView: View {
             ForEach(store.projects) { project in
                 ProjectRow(project: project, isSelected: store.selectedProjectId == project.id)
                     .tag(project.id)
+                    .contextMenu {
+                        Button(role: .destructive) {
+                            store.deleteProject(project.id)
+                        } label: {
+                            Label(S.sidebar.deleteProject, systemImage: "trash")
+                        }
+                    }
             }
             .onDelete { indexSet in
                 for index in indexSet {
@@ -30,6 +37,15 @@ struct SidebarView: View {
             ToolbarItem(placement: .primaryAction) {
                 Button(action: { showingNewProject = true }) {
                     Label(S.sidebar.newProject, systemImage: "plus")
+                }
+            }
+            ToolbarItem(placement: .cancellationAction) {
+                if store.selectedProjectId != nil {
+                    Button(role: .destructive) {
+                        if let id = store.selectedProjectId { store.deleteProject(id) }
+                    } label: {
+                        Label(S.sidebar.deleteProject, systemImage: "minus")
+                    }
                 }
             }
         }
