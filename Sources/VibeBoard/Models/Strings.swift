@@ -30,6 +30,12 @@ public struct S {
         var repoName: String { S.isZh ? "仓库名" : "Repo Name" }
         var implemented: String { S.isZh ? "已实现" : "Done" }
         var platformCount: String { S.isZh ? "平台" : "platforms" }
+        var edit: String { S.isZh ? "编辑" : "Edit" }
+        var preview: String { S.isZh ? "预览" : "Preview" }
+        var supported: String { S.isZh ? "已支持" : "Supported" }
+        var notSupported: String { S.isZh ? "未支持" : "Not Supported" }
+        var progress: String { S.isZh ? "进度" : "Progress" }
+        var noKeywords: String { S.isZh ? "暂无关键词" : "No keywords" }
     }
 
     public static var settings: Settings { .init() }

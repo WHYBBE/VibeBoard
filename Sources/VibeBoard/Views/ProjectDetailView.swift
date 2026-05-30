@@ -4,28 +4,185 @@ struct ProjectDetailView: View {
     @ObservedObject var store: VibeBoardStore
     @Binding var project: VibeProject
     @State private var newKeyword: String = ""
+    @State private var isEditing = false
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                projectNameSection
-                keywordsSection
-                platformStatusesSection
+            VStack(alignment: .leading, spacing: 20) {
+                headerBar
+                if isEditing {
+                    editContent
+                } else {
+                    previewContent
+                }
             }
-            .padding()
+            .padding(20)
+        }
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) { isEditing.toggle() }
+                } label: {
+                    Label(isEditing ? S.detail.preview : S.detail.edit, systemImage: isEditing ? "eye" : "pencil")
+                }
+                .toggleStyle(.button)
+            }
         }
     }
 
-    private var projectNameSection: some View {
+    private var headerBar: some View {
+        HStack(alignment: .bottom, spacing: 12) {
+            if isEditing {
+                TextField(S.detail.projectNamePlaceholder, text: $project.name)
+                    .font(.title2.bold())
+                    .textFieldStyle(.roundedBorder)
+            } else {
+                Text(project.name)
+                    .font(.title2.bold())
+            }
+            Spacer()
+
+            let supported = project.platformStatuses.filter(\.isSupported).count
+            let total = project.platformStatuses.count
+            Text("\(supported)/\(total) \(S.detail.platformCount)")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    // MARK: - Preview
+
+    private var previewContent: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            previewKeywordsCard
+            previewPlatformsCard
+        }
+    }
+
+    private var previewKeywordsCard: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label(S.detail.projectName, systemImage: "folder.fill")
+            Label(S.detail.keywords, systemImage: "tag.fill")
                 .font(.headline)
-            TextField(S.detail.projectNamePlaceholder, text: $project.name)
-                .textFieldStyle(.roundedBorder)
+
+            if project.keywords.isEmpty {
+                Text(S.detail.noKeywords)
+                    .font(.subheadline)
+                    .foregroundStyle(.tertiary)
+            } else {
+                FlowLayout(spacing: 8) {
+                    ForEach(project.keywords, id: \.self) { keyword in
+                        Text(keyword)
+                            .font(.subheadline)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(.tint.opacity(0.15))
+                            .clipShape(Capsule())
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(.background.secondary)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+
+    private var previewPlatformsCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label(S.detail.platformStatus, systemImage: "arrow.triangle.branch")
+                .font(.headline)
+
+            let supported = project.platformStatuses.filter(\.isSupported)
+            let unsupported = project.platformStatuses.filter { !$0.isSupported }
+
+            if !supported.isEmpty {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(S.detail.supported)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    ForEach(supported) { status in
+                        previewPlatformRow(status)
+                    }
+                }
+            }
+
+            if !unsupported.isEmpty {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(S.detail.notSupported)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    ForEach(unsupported) { status in
+                        previewPlatformRow(status)
+                    }
+                    .opacity(0.6)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(.background.secondary)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+
+    private func previewPlatformRow(_ status: PlatformStatus) -> some View {
+        let platform = store.platforms.first { $0.id == status.platformId }
+
+        return HStack(alignment: .center, spacing: 10) {
+            Image(systemName: platform?.icon ?? "questionmark.square")
+                .font(.body)
+                .foregroundStyle(status.isSupported ? .green : .secondary)
+                .frame(width: 20)
+
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 8) {
+                    Text(platform?.displayName ?? status.platformId)
+                        .font(.subheadline.weight(.medium))
+
+                    if !status.repoName.isEmpty {
+                        Text(status.repoName)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                if !status.languages.isEmpty {
+                    HStack(spacing: 4) {
+                        ForEach(status.languages) { lang in
+                            Text(lang.displayName)
+                                .font(.caption2)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(.tint.opacity(0.12))
+                                .clipShape(Capsule())
+                        }
+                    }
+                }
+            }
+
+            Spacer()
+
+            if status.isSupported, status.progress > 0 {
+                ProgressView(value: status.progress)
+                    .frame(width: 60)
+                Text("\(Int(status.progress * 100))%")
+                    .font(.caption2.monospacedDigit())
+                    .foregroundStyle(.secondary)
+                    .frame(width: 36, alignment: .trailing)
+            }
+        }
+        .padding(.vertical, 4)
+    }
+
+    // MARK: - Edit
+
+    private var editContent: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            editKeywordsCard
+            editPlatformsCard
         }
     }
 
-    private var keywordsSection: some View {
+    private var editKeywordsCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             Label(S.detail.keywords, systemImage: "tag.fill")
                 .font(.headline)
@@ -47,9 +204,13 @@ struct ProjectDetailView: View {
                     .disabled(newKeyword.trimmingCharacters(in: .whitespaces).isEmpty)
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(.background.secondary)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 
-    private var platformStatusesSection: some View {
+    private var editPlatformsCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Label(S.detail.platformStatus, systemImage: "arrow.triangle.branch")
@@ -77,6 +238,10 @@ struct ProjectDetailView: View {
                 PlatformStatusRow(store: store, status: $status, projectId: project.id)
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(.background.secondary)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 
     private func addKeyword() {

@@ -10,60 +10,78 @@ struct PlatformStatusRow: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 10) {
                 Image(systemName: platform?.icon ?? "questionmark.square")
                     .font(.title3)
                     .foregroundStyle(status.isSupported ? .green : .secondary)
-                    .frame(width: 30)
+                    .frame(width: 24)
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(platform?.displayName ?? status.platformId)
-                        .font(.headline)
-
-                    HStack(spacing: 8) {
-                        TextField(S.detail.repoName, text: $status.repoName)
-                            .textFieldStyle(.roundedBorder)
-                            .frame(maxWidth: 200)
-                    }
-                }
+                Text(platform?.displayName ?? status.platformId)
+                    .font(.headline)
 
                 Spacer()
 
                 Toggle(S.detail.implemented, isOn: $status.isSupported)
                     .toggleStyle(.switch)
-                    .labelsHidden()
-
-                if status.isSupported {
-                    ProgressView(value: status.progress)
-                        .frame(width: 80)
-                    Text("\(Int(status.progress * 100))%")
-                        .font(.caption)
-                        .monospacedDigit()
-                        .frame(width: 40)
-                }
 
                 Button(role: .destructive) {
                     store.removePlatformStatusFromProject(status.platformId, projectId: projectId)
                 } label: {
-                    Image(systemName: "minus.circle")
+                    Image(systemName: "trash")
+                        .font(.caption)
                 }
                 .buttonStyle(.borderless)
             }
 
+            HStack(spacing: 12) {
+                Label(S.detail.repoName, systemImage: "folder")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .frame(width: 60, alignment: .trailing)
+                TextField(S.detail.repoName, text: $status.repoName)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(maxWidth: 200)
+            }
+
+            if status.isSupported {
+                HStack(spacing: 12) {
+                    Label(S.detail.progress, systemImage: "chart.line.uptrend.xyaxis")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .frame(width: 60, alignment: .trailing)
+                    Slider(value: $status.progress, in: 0...1)
+                        .frame(maxWidth: 200)
+                    Text("\(Int(status.progress * 100))%")
+                        .font(.caption.monospacedDigit())
+                        .frame(width: 40)
+                }
+            }
+
             if !store.languages.isEmpty {
-                FlowLayout(spacing: 6) {
-                    ForEach(store.languages) { language in
-                        LanguageToggleTag(
-                            language: language,
-                            isSelected: status.languages.contains(language),
-                            onToggle: { store.toggleLanguageInPlatformStatus(language, platformId: status.platformId, projectId: projectId) }
-                        )
+                HStack(alignment: .top, spacing: 12) {
+                    Label(S.detail.languages, systemImage: "chevron.left.forwardslash.chevron.right")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .frame(width: 60, alignment: .trailing)
+                        .padding(.top, 2)
+
+                    FlowLayout(spacing: 6) {
+                        ForEach(store.languages) { language in
+                            LanguageToggleTag(
+                                language: language,
+                                isSelected: status.languages.contains(language),
+                                onToggle: { store.toggleLanguageInPlatformStatus(language, platformId: status.platformId, projectId: projectId) }
+                            )
+                        }
                     }
                 }
             }
         }
-        .padding(.vertical, 6)
+        .padding(10)
+        .background(status.isSupported ? Color.green.opacity(0.05) : Color.clear)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(status.isSupported ? Color.green.opacity(0.3) : Color.gray.opacity(0.3), lineWidth: 0.5))
     }
 }
 
