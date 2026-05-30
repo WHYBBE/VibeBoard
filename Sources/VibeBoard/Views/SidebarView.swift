@@ -3,6 +3,8 @@ import SwiftUI
 struct SidebarView: View {
     @ObservedObject var store: VibeBoardStore
     @State private var showingNewProject = false
+    @State private var projectToDelete: UUID?
+    @State private var showDeleteConfirm = false
 
     var body: some View {
         List(selection: $store.selectedProjectId) {
@@ -11,15 +13,21 @@ struct SidebarView: View {
                     .tag(project.id)
                     .contextMenu {
                         Button(role: .destructive) {
-                            store.deleteProject(project.id)
+                            projectToDelete = project.id
+                            showDeleteConfirm = true
                         } label: {
                             Label(S.sidebar.deleteProject, systemImage: "trash")
                         }
                     }
             }
             .onDelete { indexSet in
-                for index in indexSet {
-                    store.deleteProject(store.projects[index].id)
+                if indexSet.count == 1, let index = indexSet.first {
+                    projectToDelete = store.projects[index].id
+                    showDeleteConfirm = true
+                } else {
+                    for index in indexSet {
+                        store.deleteProject(store.projects[index].id)
+                    }
                 }
             }
         }
@@ -42,12 +50,24 @@ struct SidebarView: View {
             ToolbarItem(placement: .cancellationAction) {
                 if store.selectedProjectId != nil {
                     Button(role: .destructive) {
-                        if let id = store.selectedProjectId { store.deleteProject(id) }
+                        projectToDelete = store.selectedProjectId
+                        showDeleteConfirm = true
                     } label: {
                         Label(S.sidebar.deleteProject, systemImage: "minus")
                     }
                 }
             }
+        }
+        .alert(S.sidebar.deleteProjectConfirmTitle, isPresented: $showDeleteConfirm) {
+            Button(S.sidebar.deleteProject, role: .destructive) {
+                if let id = projectToDelete { store.deleteProject(id) }
+                projectToDelete = nil
+            }
+            Button(S.sidebar.cancel, role: .cancel) {
+                projectToDelete = nil
+            }
+        } message: {
+            Text(S.sidebar.deleteProjectConfirmMessage)
         }
         .sheet(isPresented: $showingNewProject) {
             NewProjectSheet(store: store)

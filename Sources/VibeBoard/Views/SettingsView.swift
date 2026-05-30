@@ -150,6 +150,7 @@ struct PlatformCard: View {
     @Binding var platform: Platform
     @ObservedObject var store: VibeBoardStore
     @State private var expanded = false
+    @State private var showDeleteConfirm = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -202,12 +203,20 @@ struct PlatformCard: View {
                     HStack {
                         Spacer()
                         Button(S.settings.deletePlatform, role: .destructive) {
-                            store.removePlatform(id: platform.id)
+                            showDeleteConfirm = true
                         }
                         .controlSize(.small)
                     }
                     .padding(.horizontal, 12)
                     .padding(.bottom, 10)
+                    .alert(S.settings.deleteCustomPlatformConfirmTitle, isPresented: $showDeleteConfirm) {
+                        Button(S.settings.deletePlatform, role: .destructive) {
+                            store.removePlatform(id: platform.id)
+                        }
+                        Button(S.sidebar.cancel, role: .cancel) {}
+                    } message: {
+                        Text(S.settings.deleteCustomPlatformConfirmMessage)
+                    }
                 }
             }
         }
@@ -350,6 +359,7 @@ struct LanguageCard: View {
     @Binding var language: Language
     @ObservedObject var store: VibeBoardStore
     @State private var expanded = false
+    @State private var showDeleteConfirm = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -397,12 +407,20 @@ struct LanguageCard: View {
                     HStack {
                         Spacer()
                         Button(S.settings.deleteLanguage, role: .destructive) {
-                            store.removeLanguage(id: language.id)
+                            showDeleteConfirm = true
                         }
                         .controlSize(.small)
                     }
                     .padding(.horizontal, 12)
                     .padding(.bottom, 10)
+                    .alert(S.settings.deleteCustomLanguageConfirmTitle, isPresented: $showDeleteConfirm) {
+                        Button(S.settings.deleteLanguage, role: .destructive) {
+                            store.removeLanguage(id: language.id)
+                        }
+                        Button(S.sidebar.cancel, role: .cancel) {}
+                    } message: {
+                        Text(S.settings.deleteCustomLanguageConfirmMessage)
+                    }
                 }
             }
         }

@@ -13,6 +13,8 @@ public struct S {
         var create: String { S.isZh ? "创建" : "Create" }
         var projectName: String { S.isZh ? "项目名称" : "Project Name" }
         var deleteProject: String { S.isZh ? "删除项目" : "Delete Project" }
+        var deleteProjectConfirmTitle: String { S.isZh ? "确认删除项目" : "Delete Project" }
+        var deleteProjectConfirmMessage: String { S.isZh ? "将删除此项目及所有相关数据，不可恢复。确定继续？" : "This project and all related data will be deleted. This cannot be undone. Continue?" }
     }
 
     public static var detail: Detail { .init() }
@@ -42,6 +44,10 @@ public struct S {
         var sharedGroupPlatforms: String { S.isZh ? "共享平台" : "Shared Platforms" }
         var sharedGroupRepo: String { S.isZh ? "共享仓库" : "Shared Repo" }
         var deleteGroup: String { S.isZh ? "删除此组" : "Delete Group" }
+        var deleteGroupConfirmTitle: String { S.isZh ? "确认删除共享组" : "Delete Shared Group" }
+        var deleteGroupConfirmMessage: String { S.isZh ? "将删除此共享组，不可恢复。确定继续？" : "This shared group will be deleted. This cannot be undone. Continue?" }
+        var deletePlatformConfirmTitle: String { S.isZh ? "确认删除平台" : "Remove Platform" }
+        var deletePlatformConfirmMessage: String { S.isZh ? "将从项目中移除此平台，不可恢复。确定继续？" : "This platform will be removed from the project. This cannot be undone. Continue?" }
     }
 
     public static var settings: Settings { .init() }
@@ -75,5 +81,9 @@ public struct S {
         var clearConfirmTitle: String { S.isZh ? "确认清空" : "Confirm Clear" }
         var clearConfirmMessage: String { S.isZh ? "将删除所有项目、自定义平台和语言，不可恢复。确定继续？" : "All projects, custom platforms and languages will be deleted. This cannot be undone. Continue?" }
         var clearSuccess: String { S.isZh ? "已清空" : "Cleared" }
+        var deleteCustomPlatformConfirmTitle: String { S.isZh ? "确认删除自定义平台" : "Delete Custom Platform" }
+        var deleteCustomPlatformConfirmMessage: String { S.isZh ? "将删除此自定义平台及项目中相关数据，不可恢复。确定继续？" : "This custom platform and related project data will be deleted. This cannot be undone. Continue?" }
+        var deleteCustomLanguageConfirmTitle: String { S.isZh ? "确认删除自定义语言" : "Delete Custom Language" }
+        var deleteCustomLanguageConfirmMessage: String { S.isZh ? "将删除此自定义语言及项目中相关数据，不可恢复。确定继续？" : "This custom language and related project data will be deleted. This cannot be undone. Continue?" }
     }
 }

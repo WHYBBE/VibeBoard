@@ -4,6 +4,7 @@ struct PlatformStatusRow: View {
     @ObservedObject var store: VibeBoardStore
     @Binding var status: PlatformStatus
     var projectId: UUID
+    @State private var showDeleteConfirm = false
 
     private var platform: Platform? {
         store.platforms.first { $0.id == status.platformId }
@@ -26,12 +27,20 @@ struct PlatformStatusRow: View {
                     .toggleStyle(.switch)
 
                 Button(role: .destructive) {
-                    store.removePlatformStatusFromProject(status.platformId, projectId: projectId)
+                    showDeleteConfirm = true
                 } label: {
                     Image(systemName: "trash")
                         .font(.caption)
                 }
                 .buttonStyle(.borderless)
+                .alert(S.detail.deletePlatformConfirmTitle, isPresented: $showDeleteConfirm) {
+                    Button(S.detail.deleteGroup, role: .destructive) {
+                        store.removePlatformStatusFromProject(status.platformId, projectId: projectId)
+                    }
+                    Button(S.sidebar.cancel, role: .cancel) {}
+                } message: {
+                    Text(S.detail.deletePlatformConfirmMessage)
+                }
             }
 
             HStack(spacing: 12) {

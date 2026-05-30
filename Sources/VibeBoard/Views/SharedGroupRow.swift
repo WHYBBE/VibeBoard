@@ -4,6 +4,7 @@ struct SharedGroupRow: View {
     @ObservedObject var store: VibeBoardStore
     @Binding var group: SharedGroup
     var projectId: UUID
+    @State private var showDeleteConfirm = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -20,12 +21,20 @@ struct SharedGroupRow: View {
                 Spacer()
 
                 Button(role: .destructive) {
-                    store.removeSharedGroup(group.id, projectId: projectId)
+                    showDeleteConfirm = true
                 } label: {
                     Image(systemName: "trash")
                         .font(.caption)
                 }
                 .buttonStyle(.borderless)
+                .alert(S.detail.deleteGroupConfirmTitle, isPresented: $showDeleteConfirm) {
+                    Button(S.detail.deleteGroup, role: .destructive) {
+                        store.removeSharedGroup(group.id, projectId: projectId)
+                    }
+                    Button(S.sidebar.cancel, role: .cancel) {}
+                } message: {
+                    Text(S.detail.deleteGroupConfirmMessage)
+                }
             }
 
             HStack(spacing: 12) {
