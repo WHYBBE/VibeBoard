@@ -13,12 +13,10 @@ struct OverviewView: View {
                     description: Text(S.sidebar.noProjectHint)
                 )
             } else {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 320), spacing: 16)], spacing: 16) {
+                VStack(spacing: 12) {
                     ForEach(store.projects) { project in
                         overviewCard(project)
-                            .onTapGesture {
-                                onProjectTap(project.id)
-                            }
+                            .onTapGesture { onProjectTap(project.id) }
                     }
                 }
                 .padding(20)
@@ -27,170 +25,139 @@ struct OverviewView: View {
     }
 
     private func overviewCard(_ project: VibeProject) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .bottom, spacing: 12) {
-                Text(project.name)
-                    .font(.title3.bold())
-                    .lineLimit(1)
-                Spacer()
-                Text(project.createdAt.formatted(date: .abbreviated, time: .omitted))
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-            }
+        HStack(alignment: .top, spacing: 14) {
+            overviewLeft(project)
+            overviewRight(project)
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.background.secondary)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color.gray.opacity(0.15), lineWidth: 0.5))
+    }
 
-            let supported = project.platformStatuses.filter(\.isSupported).count
-            let total = project.platformStatuses.count
-            HStack(spacing: 12) {
-                miniBadge(value: supported, label: S.detail.supported, color: .green)
-                miniBadge(value: total - supported, label: S.detail.notSupported, color: .orange)
-                miniBadge(value: project.sharedGroups.count, label: S.detail.sharedGroups, color: .blue)
-            }
+    private func overviewLeft(_ project: VibeProject) -> some View {
+        let supported = project.platformStatuses.filter(\.isSupported).count
+        let total = project.platformStatuses.count
+
+        return VStack(alignment: .leading, spacing: 4) {
+            Text(project.name)
+                .font(.headline)
+                .lineLimit(1)
+
+            Text(project.createdAt.formatted(date: .abbreviated, time: .omitted))
+                .font(.system(size: 9))
+                .foregroundStyle(.tertiary)
 
             if !project.keywords.isEmpty {
-                FlowLayout(spacing: 6) {
-                    ForEach(project.keywords, id: \.self) { keyword in
-                        Text(keyword)
-                            .font(.caption)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 3)
-                            .background(.tint.opacity(0.1))
-                            .clipShape(Capsule())
-                    }
-                }
-            }
-
-            let sharedPlatformIds = Set(project.sharedGroups.flatMap(\.platformIds))
-
-            if !project.sharedGroups.isEmpty {
-                ForEach(project.sharedGroups) { group in
-                    overviewSharedGroupRow(group)
-                }
-            }
-
-            let standaloneSupported = project.platformStatuses.filter { $0.isSupported && !sharedPlatformIds.contains($0.platformId) }
-            let standaloneUnsupported = project.platformStatuses.filter { !$0.isSupported && !sharedPlatformIds.contains($0.platformId) }
-
-            if !standaloneSupported.isEmpty {
-                if !project.sharedGroups.isEmpty {
-                    Divider()
-                }
-                ForEach(standaloneSupported) { status in
-                    overviewPlatformRow(status)
-                }
-            }
-
-            if !standaloneUnsupported.isEmpty {
-                if !project.sharedGroups.isEmpty || !standaloneSupported.isEmpty {
-                    Divider()
-                }
-                ForEach(standaloneUnsupported) { status in
-                    overviewPlatformRow(status)
-                }
-                .opacity(0.5)
-            }
-        }
-        .padding(16)
-        .background(.background.secondary)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color.gray.opacity(0.2), lineWidth: 0.5))
-    }
-
-    private func miniBadge(value: Int, label: String, color: Color) -> some View {
-        HStack(spacing: 4) {
-            Circle()
-                .fill(color)
-                .frame(width: 8, height: 8)
-            Text("\(value)")
-                .font(.caption.bold())
-                .foregroundStyle(color)
-            Text(label)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-        }
-    }
-
-    private func overviewSharedGroupRow(_ group: SharedGroup) -> some View {
-        HStack(spacing: 8) {
-            Image(systemName: "square.on.square")
-                .font(.callout)
-                .foregroundStyle(.blue)
-                .frame(width: 18)
-
-            HStack(spacing: 4) {
-                ForEach(Array(group.platformIds.enumerated()), id: \.offset) { index, pid in
-                    let p = store.platforms.first { $0.id == pid }
-                    if index > 0 {
-                        Text("+")
-                            .font(.caption2.weight(.bold))
-                            .foregroundStyle(.secondary)
-                    }
-                    Image(systemName: p?.icon ?? "questionmark.square")
-                        .font(.caption)
-                }
-                if !group.name.isEmpty {
-                    Text(group.name)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            Spacer()
-
-            HStack(spacing: 4) {
-                ForEach(group.languages) { lang in
-                    Text(lang.displayName)
-                        .font(.caption2)
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 1)
-                        .background(.tint.opacity(0.1))
-                        .clipShape(Capsule())
-                }
-            }
-
-            if group.progress > 0 {
-                Text("\(Int(group.progress * 100))%")
-                    .font(.caption2.monospacedDigit())
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .padding(6)
-        .background(Color.blue.opacity(0.05))
-        .clipShape(RoundedRectangle(cornerRadius: 6))
-    }
-
-    private func overviewPlatformRow(_ status: PlatformStatus) -> some View {
-        let platform = store.platforms.first { $0.id == status.platformId }
-
-        return HStack(spacing: 8) {
-            Image(systemName: platform?.icon ?? "questionmark.square")
-                .font(.callout)
-                .foregroundStyle(status.isSupported ? .green : .secondary)
-                .frame(width: 18)
-
-            Text(platform?.displayName ?? status.platformId)
-                .font(.callout.weight(.medium))
-
-            Spacer()
-
-            if !status.languages.isEmpty {
-                HStack(spacing: 4) {
-                    ForEach(status.languages) { lang in
-                        Text(lang.displayName)
-                            .font(.caption2)
+                FlowLayout(spacing: 4) {
+                    ForEach(project.keywords, id: \.self) { kw in
+                        Text(kw)
+                            .font(.system(size: 9))
                             .padding(.horizontal, 5)
                             .padding(.vertical, 1)
-                            .background(.tint.opacity(0.1))
+                            .background(.tint.opacity(0.08))
                             .clipShape(Capsule())
                     }
                 }
+                .padding(.top, 2)
             }
 
-            if status.isSupported, status.progress > 0 {
-                Text("\(Int(status.progress * 100))%")
-                    .font(.caption2.monospacedDigit())
-                    .foregroundStyle(.secondary)
+            Spacer(minLength: 0)
+
+            Text("\(supported)/\(total)")
+                .font(.caption.monospacedDigit().bold())
+                .foregroundStyle(supported == total && total > 0 ? .green : .secondary)
+        }
+        .frame(width: 140, alignment: .leading)
+    }
+
+    private func overviewRight(_ project: VibeProject) -> some View {
+        let sharedPlatformIds = Set(project.sharedGroups.flatMap(\.platformIds))
+
+        return VStack(spacing: 4) {
+            ForEach(project.sharedGroups) { group in
+                sharedGroupRow(group)
+            }
+
+            ForEach(project.platformStatuses.filter { !sharedPlatformIds.contains($0.platformId) }) { status in
+                platformRow(status)
             }
         }
-        .padding(.vertical, 2)
+    }
+
+    private func sharedGroupRow(_ group: SharedGroup) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: "square.on.square")
+                .font(.caption2)
+                .foregroundStyle(.blue)
+
+            HStack(spacing: 2) {
+                ForEach(Array(group.platformIds.enumerated()), id: \.offset) { i, pid in
+                    let p = store.platforms.first { $0.id == pid }
+                    if i > 0 { Text("+").font(.system(size: 8)).foregroundStyle(.tertiary) }
+                    Image(systemName: p?.icon ?? "questionmark.square").font(.caption2)
+                }
+            }
+
+            if !group.name.isEmpty {
+                Text(group.name).font(.caption2).foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            langTags(group.languages)
+
+            if group.progress > 0 { pctLabel(group.progress) }
+        }
+        .padding(.horizontal, 6)
+        .padding(.vertical, 4)
+        .background(Color.blue.opacity(0.05))
+        .clipShape(RoundedRectangle(cornerRadius: 5))
+    }
+
+    private func platformRow(_ status: PlatformStatus) -> some View {
+        let platform = store.platforms.first { $0.id == status.platformId }
+
+        return HStack(spacing: 6) {
+            Image(systemName: platform?.icon ?? "questionmark.square")
+                .font(.caption2)
+                .foregroundStyle(status.isSupported ? .green : Color.gray.opacity(0.4))
+
+            Text(platform?.displayName ?? status.platformId)
+                .font(.caption)
+                .frame(width: 64, alignment: .leading)
+                .foregroundStyle(status.isSupported ? .primary : .secondary)
+
+            Spacer()
+
+            langTags(status.languages)
+
+            if status.isSupported, status.progress > 0 {
+                pctLabel(status.progress)
+            }
+        }
+        .frame(height: 20)
+        .opacity(status.isSupported ? 1 : 0.4)
+    }
+
+    private func langTags(_ languages: [Language]) -> some View {
+        HStack(spacing: 3) {
+            ForEach(languages) { lang in
+                Text(lang.displayName)
+                    .font(.system(size: 9))
+                    .padding(.horizontal, 4)
+                    .padding(.vertical, 1)
+                    .background(.tint.opacity(0.1))
+                    .clipShape(Capsule())
+            }
+        }
+    }
+
+    private func pctLabel(_ progress: Double) -> some View {
+        Text("\(Int(progress * 100))%")
+            .font(.system(size: 9).monospacedDigit())
+            .foregroundStyle(.secondary)
+            .frame(width: 28, alignment: .trailing)
     }
 }
