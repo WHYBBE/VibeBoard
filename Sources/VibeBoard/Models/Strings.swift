@@ -15,6 +15,8 @@ public struct S {
         var deleteProject: String { S.isZh ? "删除项目" : "Delete Project" }
         var deleteProjectConfirmTitle: String { S.isZh ? "确认删除项目" : "Delete Project" }
         var deleteProjectConfirmMessage: String { S.isZh ? "将删除此项目及所有相关数据，不可恢复。确定继续？" : "This project and all related data will be deleted. This cannot be undone. Continue?" }
+        var overview: String { S.isZh ? "概览" : "Overview" }
+        var projects: String { S.isZh ? "项目列表" : "Projects" }
     }
 
     public static var detail: Detail { .init() }
