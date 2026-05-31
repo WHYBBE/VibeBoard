@@ -2,7 +2,7 @@ import SwiftUI
 
 public struct VibeBoardView: View {
     @ObservedObject var store: VibeBoardStore
-    @State private var isOverviewMode = true
+    @State private var isOverviewMode: Bool = UserDefaults.standard.bool(forKey: "isOverviewMode") != false
     @State private var showingNewProject = false
 
     public init(store: VibeBoardStore) {
@@ -36,6 +36,9 @@ public struct VibeBoardView: View {
         }
         .sheet(isPresented: $showingNewProject) {
             NewProjectSheet(store: store)
+        }
+        .onChange(of: isOverviewMode) { _, newValue in
+            UserDefaults.standard.set(newValue, forKey: "isOverviewMode")
         }
     }
 
