@@ -17,6 +17,9 @@ public struct S {
         var deleteProjectConfirmMessage: String { S.isZh ? "将删除此项目及所有相关数据，不可恢复。确定继续？" : "This project and all related data will be deleted. This cannot be undone. Continue?" }
         var overview: String { S.isZh ? "概览" : "Overview" }
         var projects: String { S.isZh ? "项目列表" : "Projects" }
+        var groupByPlatform: String { S.isZh ? "按平台分组" : "Group by Platform" }
+        var groupByLanguage: String { S.isZh ? "按语言分组" : "Group by Language" }
+        var groupByNone: String { S.isZh ? "不分组" : "No Grouping" }
     }
 
     public static var detail: Detail { .init() }
