@@ -198,7 +198,7 @@ struct ProjectDetailView: View {
                             .clipShape(Capsule())
                     }
 
-                    ForEach(group.llmTags) { tag in
+                    ForEach(group.llmTags.filter { store.validLLMTagIds.contains($0.id) }) { tag in
                         Text(tag.displayName)
                             .font(.callout)
                             .padding(.horizontal, 8)
@@ -252,7 +252,7 @@ struct ProjectDetailView: View {
                     }
                 }
 
-                if !status.languages.isEmpty || !status.llmTags.isEmpty {
+                if !status.languages.isEmpty || !status.llmTags.filter({ store.validLLMTagIds.contains($0.id) }).isEmpty {
                     HStack(spacing: 6) {
                         ForEach(status.languages) { lang in
                             Text(lang.displayName)
@@ -263,7 +263,7 @@ struct ProjectDetailView: View {
                                 .clipShape(Capsule())
                         }
 
-                        ForEach(status.llmTags) { tag in
+                        ForEach(status.llmTags.filter { store.validLLMTagIds.contains($0.id) }) { tag in
                             Text(tag.displayName)
                                 .font(.callout)
                                 .padding(.horizontal, 8)

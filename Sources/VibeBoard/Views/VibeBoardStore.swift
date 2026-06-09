@@ -26,9 +26,25 @@ public final class VibeBoardStore: ObservableObject {
             self.selectedProjectId = decoded.selectedProjectId
             self.platforms = decoded.platforms
             self.languages = decoded.languages
-            self.llmTags = decoded.llmTags ?? LLMTag.builtInAll
+            self.llmTags = decoded.llmTags ?? []
             self.appLanguage = decoded.appLanguage ?? .zh
             self.appTheme = decoded.appTheme ?? .system
+
+            let validIds = Set(self.llmTags.map(\.id))
+            for i in self.projects.indices {
+                for j in self.projects[i].platformStatuses.indices {
+                    var seen = Set<String>()
+                    self.projects[i].platformStatuses[j].llmTags = self.projects[i].platformStatuses[j].llmTags.filter {
+                        validIds.contains($0.id) && seen.insert($0.id).inserted
+                    }
+                }
+                for j in self.projects[i].sharedGroups.indices {
+                    var seen = Set<String>()
+                    self.projects[i].sharedGroups[j].llmTags = self.projects[i].sharedGroups[j].llmTags.filter {
+                        validIds.contains($0.id) && seen.insert($0.id).inserted
+                    }
+                }
+            }
         } else {
             self.platforms = Platform.builtInAll
             self.languages = Language.builtInAll
@@ -61,6 +77,7 @@ public final class VibeBoardStore: ObservableObject {
             selectedProjectId: selectedProjectId,
             platforms: platforms,
             languages: languages,
+            llmTags: llmTags,
             appLanguage: appLanguage,
             appTheme: appTheme
         )
@@ -75,6 +92,7 @@ public final class VibeBoardStore: ObservableObject {
 
     public var enabledPlatforms: [Platform] { platforms.filter(\.isEnabled) }
     public var enabledLanguages: [Language] { languages.filter(\.isEnabled) }
+    public var validLLMTagIds: Set<String> { Set(llmTags.map(\.id)) }
 
     // MARK: - Project CRUD
 
@@ -319,6 +337,7 @@ public final class VibeBoardStore: ObservableObject {
         selectedProjectId = decoded.selectedProjectId
         platforms = decoded.platforms
         languages = decoded.languages
+        llmTags = decoded.llmTags ?? []
         appLanguage = decoded.appLanguage ?? .zh
         appTheme = decoded.appTheme ?? .system
         S.lang = appLanguage

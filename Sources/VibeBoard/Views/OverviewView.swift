@@ -108,7 +108,7 @@ struct OverviewView: View {
 
             langTags(group.languages)
 
-            llmTagTags(group.llmTags)
+            llmTagTags(group.llmTags.filter { store.validLLMTagIds.contains($0.id) })
 
             if group.progress > 0 { pctLabel(group.progress) }
         }
@@ -135,7 +135,7 @@ struct OverviewView: View {
 
             langTags(status.languages)
 
-            llmTagTags(status.llmTags)
+            llmTagTags(status.llmTags.filter { store.validLLMTagIds.contains($0.id) })
 
             if status.isSupported, status.progress > 0 {
                 pctLabel(status.progress)

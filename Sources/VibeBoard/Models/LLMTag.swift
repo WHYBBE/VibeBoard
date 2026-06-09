@@ -1,6 +1,6 @@
 import Foundation
 
-public struct LLMTag: Identifiable, Codable, Hashable, Sendable {
+public struct LLMTag: Identifiable, Codable, Sendable {
     public var id: String
     public var displayName: String
     public var icon: String
@@ -16,4 +16,14 @@ public struct LLMTag: Identifiable, Codable, Hashable, Sendable {
     }
 
     public static let builtInAll: [LLMTag] = []
+}
+
+extension LLMTag: Hashable {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+
+    public static func == (lhs: LLMTag, rhs: LLMTag) -> Bool {
+        lhs.id == rhs.id
+    }
 }
