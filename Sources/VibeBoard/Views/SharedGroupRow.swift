@@ -95,6 +95,26 @@ struct SharedGroupRow: View {
                     }
                 }
             }
+
+            if !store.llmTags.isEmpty {
+                HStack(alignment: .top, spacing: 12) {
+                    Label(S.detail.llmTags, systemImage: "cpu")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .frame(width: 60, alignment: .trailing)
+                        .padding(.top, 2)
+
+                    FlowLayout(spacing: 6) {
+                        ForEach(store.llmTags) { tag in
+                            LLMTagToggleTag(
+                                tag: tag,
+                                isSelected: group.llmTags.contains(tag),
+                                onToggle: { store.toggleLLMTagInSharedGroup(tag, groupId: group.id, projectId: projectId) }
+                            )
+                        }
+                    }
+                }
+            }
         }
         .padding(10)
         .background(Color.blue.opacity(0.05))

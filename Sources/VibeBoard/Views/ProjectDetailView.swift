@@ -197,6 +197,15 @@ struct ProjectDetailView: View {
                             .background(.tint.opacity(0.12))
                             .clipShape(Capsule())
                     }
+
+                    ForEach(group.llmTags) { tag in
+                        Text(tag.displayName)
+                            .font(.callout)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(Color.purple.opacity(0.12))
+                            .clipShape(Capsule())
+                    }
                 }
             }
 
@@ -243,7 +252,7 @@ struct ProjectDetailView: View {
                     }
                 }
 
-                if !status.languages.isEmpty {
+                if !status.languages.isEmpty || !status.llmTags.isEmpty {
                     HStack(spacing: 6) {
                         ForEach(status.languages) { lang in
                             Text(lang.displayName)
@@ -251,6 +260,15 @@ struct ProjectDetailView: View {
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 3)
                                 .background(.tint.opacity(0.12))
+                                .clipShape(Capsule())
+                        }
+
+                        ForEach(status.llmTags) { tag in
+                            Text(tag.displayName)
+                                .font(.callout)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 3)
+                                .background(Color.purple.opacity(0.12))
                                 .clipShape(Capsule())
                         }
                     }

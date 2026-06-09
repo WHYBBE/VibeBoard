@@ -86,6 +86,26 @@ struct PlatformStatusRow: View {
                     }
                 }
             }
+
+            if !store.llmTags.isEmpty {
+                HStack(alignment: .top, spacing: 12) {
+                    Label(S.detail.llmTags, systemImage: "cpu")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .frame(width: 60, alignment: .trailing)
+                        .padding(.top, 2)
+
+                    FlowLayout(spacing: 6) {
+                        ForEach(store.llmTags) { tag in
+                            LLMTagToggleTag(
+                                tag: tag,
+                                isSelected: status.llmTags.contains(tag),
+                                onToggle: { store.toggleLLMTagInPlatformStatus(tag, platformId: status.platformId, projectId: projectId) }
+                            )
+                        }
+                    }
+                }
+            }
         }
         .padding(10)
         .background(status.isSupported ? Color.green.opacity(0.05) : Color.clear)
@@ -110,6 +130,29 @@ struct LanguageToggleTag: View {
             .padding(.horizontal, 10)
             .padding(.vertical, 4)
             .background(isSelected ? Color.accentColor.opacity(0.2) : Color.gray.opacity(0.1))
+            .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(isSelected ? .primary : .secondary)
+    }
+}
+
+struct LLMTagToggleTag: View {
+    let tag: LLMTag
+    let isSelected: Bool
+    let onToggle: () -> Void
+
+    var body: some View {
+        Button(action: onToggle) {
+            HStack(spacing: 4) {
+                Text(tag.displayName)
+                    .font(.subheadline)
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .font(.caption2)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 4)
+            .background(isSelected ? Color.purple.opacity(0.2) : Color.gray.opacity(0.1))
             .clipShape(Capsule())
         }
         .buttonStyle(.plain)

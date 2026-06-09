@@ -20,6 +20,10 @@ public struct SettingsView: View {
             Tab(S.settings.language, systemImage: "chevron.left.forwardslash.chevron.right") {
                 LanguageSettingsTab(store: store)
             }
+
+            Tab(S.settings.llm, systemImage: "cpu") {
+                LLMSettingsTab(store: store)
+            }
         }
     }
 }
@@ -474,5 +478,136 @@ struct AddLanguageCard: View {
 private extension String {
     func ifEmpty(_ fallback: String?) -> String? {
         isEmpty ? fallback : self
+    }
+}
+
+// MARK: - LLM Tag
+
+struct LLMSettingsTab: View {
+    @ObservedObject var store: VibeBoardStore
+    @State private var newDisplayName: String = ""
+    @State private var newIcon: String = "cpu"
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 12) {
+                ForEach($store.llmTags) { $tag in
+                    LLMTagCard(tag: $tag, store: store)
+                }
+                AddLLMTagCard(draftName: $newDisplayName, draftIcon: $newIcon, store: store)
+            }
+            .padding(16)
+        }
+    }
+}
+
+struct LLMTagCard: View {
+    @Binding var tag: LLMTag
+    @ObservedObject var store: VibeBoardStore
+    @State private var expanded = false
+    @State private var showDeleteConfirm = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 10) {
+                Image(systemName: tag.icon)
+                    .font(.title3)
+                    .foregroundStyle(Color.accentColor)
+                    .frame(width: 24)
+
+                Text(tag.displayName)
+                    .font(.headline)
+
+                Spacer()
+
+                Button {
+                    withAnimation(.easeInOut(duration: 0.15)) { expanded.toggle() }
+                } label: {
+                    Image(systemName: expanded ? "chevron.up" : "chevron.down")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.borderless)
+            }
+            .padding(12)
+
+            if expanded {
+                Divider().padding(.horizontal, 12)
+
+                VStack(alignment: .leading, spacing: 10) {
+                    FieldRow(label: S.settings.icon) {
+                        IconPicker(selection: $tag.icon)
+                    }
+                    FieldRow(label: S.settings.displayName) {
+                        TextField("", text: $tag.displayName)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(maxWidth: 160)
+                    }
+                }
+                .padding(12)
+
+                HStack {
+                    Spacer()
+                    Button(S.settings.deleteLLMTag, role: .destructive) {
+                        showDeleteConfirm = true
+                    }
+                    .controlSize(.small)
+                }
+                .padding(.horizontal, 12)
+                .padding(.bottom, 10)
+                .alert(S.settings.deleteCustomLLMTagConfirmTitle, isPresented: $showDeleteConfirm) {
+                    Button(S.settings.deleteLLMTag, role: .destructive) {
+                        store.removeLLMTag(id: tag.id)
+                    }
+                    Button(S.sidebar.cancel, role: .cancel) {}
+                } message: {
+                    Text(S.settings.deleteCustomLLMTagConfirmMessage)
+                }
+            }
+        }
+        .background(.background.secondary)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(.separator, lineWidth: 0.5))
+    }
+}
+
+struct AddLLMTagCard: View {
+    @Binding var draftName: String
+    @Binding var draftIcon: String
+    @ObservedObject var store: VibeBoardStore
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(S.settings.addCustomLLMTag)
+                .font(.headline)
+
+            FieldRow(label: S.settings.icon) {
+                IconPicker(selection: $draftIcon)
+            }
+            FieldRow(label: S.settings.displayName) {
+                TextField("", text: $draftName)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(maxWidth: 160)
+            }
+
+            HStack {
+                Spacer()
+                Button(S.detail.add) {
+                    let t = LLMTag(
+                        id: draftName.trimmingCharacters(in: .whitespaces),
+                        displayName: draftName.trimmingCharacters(in: .whitespaces).ifEmpty(nil),
+                        icon: draftIcon.trimmingCharacters(in: .whitespaces).ifEmpty("cpu") ?? "cpu"
+                    )
+                    store.addLLMTag(t)
+                    draftName = ""
+                    draftIcon = "cpu"
+                }
+                .disabled(draftName.trimmingCharacters(in: .whitespaces).isEmpty)
+            }
+        }
+        .padding(12)
+        .background(.background.secondary)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(.separator, lineWidth: 0.5))
     }
 }

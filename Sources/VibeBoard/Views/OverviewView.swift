@@ -108,6 +108,8 @@ struct OverviewView: View {
 
             langTags(group.languages)
 
+            llmTagTags(group.llmTags)
+
             if group.progress > 0 { pctLabel(group.progress) }
         }
         .padding(.horizontal, 6)
@@ -132,6 +134,8 @@ struct OverviewView: View {
             Spacer()
 
             langTags(status.languages)
+
+            llmTagTags(status.llmTags)
 
             if status.isSupported, status.progress > 0 {
                 pctLabel(status.progress)
@@ -159,5 +163,18 @@ struct OverviewView: View {
             .font(.system(size: 9).monospacedDigit())
             .foregroundStyle(.secondary)
             .frame(width: 28, alignment: .trailing)
+    }
+
+    private func llmTagTags(_ tags: [LLMTag]) -> some View {
+        HStack(spacing: 3) {
+            ForEach(tags) { tag in
+                Text(tag.displayName)
+                    .font(.system(size: 9))
+                    .padding(.horizontal, 4)
+                    .padding(.vertical, 1)
+                    .background(Color.purple.opacity(0.12))
+                    .clipShape(Capsule())
+            }
+        }
     }
 }

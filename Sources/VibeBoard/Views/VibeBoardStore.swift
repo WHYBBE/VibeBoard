@@ -7,6 +7,7 @@ public final class VibeBoardStore: ObservableObject {
     @Published public var selectedProjectId: UUID?
     @Published public var platforms: [Platform]
     @Published public var languages: [Language]
+    @Published public var llmTags: [LLMTag]
     @Published public var appLanguage: AppLanguage
     @Published public var appTheme: AppTheme
 
@@ -25,11 +26,13 @@ public final class VibeBoardStore: ObservableObject {
             self.selectedProjectId = decoded.selectedProjectId
             self.platforms = decoded.platforms
             self.languages = decoded.languages
+            self.llmTags = decoded.llmTags ?? LLMTag.builtInAll
             self.appLanguage = decoded.appLanguage ?? .zh
             self.appTheme = decoded.appTheme ?? .system
         } else {
             self.platforms = Platform.builtInAll
             self.languages = Language.builtInAll
+            self.llmTags = LLMTag.builtInAll
             self.appLanguage = .zh
             self.appTheme = .system
         }
@@ -134,6 +137,30 @@ public final class VibeBoardStore: ObservableObject {
                 projects[index].platformStatuses[pIndex].languages.remove(at: lIndex)
             } else {
                 projects[index].platformStatuses[pIndex].languages.append(language)
+            }
+        }
+    }
+
+    // MARK: - Platform Status LLM Tags
+
+    public func toggleLLMTagInPlatformStatus(_ tag: LLMTag, platformId: String, projectId: UUID) {
+        guard let index = projects.firstIndex(where: { $0.id == projectId }) else { return }
+        if let pIndex = projects[index].platformStatuses.firstIndex(where: { $0.platformId == platformId }) {
+            if let tIndex = projects[index].platformStatuses[pIndex].llmTags.firstIndex(of: tag) {
+                projects[index].platformStatuses[pIndex].llmTags.remove(at: tIndex)
+            } else {
+                projects[index].platformStatuses[pIndex].llmTags.append(tag)
+            }
+        }
+    }
+
+    public func toggleLLMTagInSharedGroup(_ tag: LLMTag, groupId: UUID, projectId: UUID) {
+        guard let index = projects.firstIndex(where: { $0.id == projectId }) else { return }
+        if let gIndex = projects[index].sharedGroups.firstIndex(where: { $0.id == groupId }) {
+            if let tIndex = projects[index].sharedGroups[gIndex].llmTags.firstIndex(of: tag) {
+                projects[index].sharedGroups[gIndex].llmTags.remove(at: tIndex)
+            } else {
+                projects[index].sharedGroups[gIndex].llmTags.append(tag)
             }
         }
     }
@@ -243,6 +270,32 @@ public final class VibeBoardStore: ObservableObject {
         }
     }
 
+    // MARK: - Settings: LLM Tag Management
+
+    public func addLLMTag(_ tag: LLMTag) {
+        if !llmTags.contains(where: { $0.id == tag.id }) {
+            llmTags.append(tag)
+        }
+    }
+
+    public func removeLLMTag(id: String) {
+        llmTags.removeAll { $0.id == id }
+        for index in projects.indices {
+            for pIndex in projects[index].platformStatuses.indices {
+                projects[index].platformStatuses[pIndex].llmTags.removeAll { $0.id == id }
+            }
+            for gIndex in projects[index].sharedGroups.indices {
+                projects[index].sharedGroups[gIndex].llmTags.removeAll { $0.id == id }
+            }
+        }
+    }
+
+    public func updateLLMTag(_ tag: LLMTag) {
+        if let index = llmTags.firstIndex(where: { $0.id == tag.id }) {
+            llmTags[index] = tag
+        }
+    }
+
     // MARK: - Import / Export
 
     public func exportData() -> Data? {
@@ -251,6 +304,7 @@ public final class VibeBoardStore: ObservableObject {
             selectedProjectId: selectedProjectId,
             platforms: platforms,
             languages: languages,
+            llmTags: llmTags,
             appLanguage: appLanguage,
             appTheme: appTheme
         )
@@ -276,6 +330,7 @@ public final class VibeBoardStore: ObservableObject {
         selectedProjectId = nil
         platforms = Platform.builtInAll
         languages = Language.builtInAll
+        llmTags = LLMTag.builtInAll
     }
 }
 
@@ -284,6 +339,7 @@ private struct StoreSnapshot: Codable {
     var selectedProjectId: UUID?
     var platforms: [Platform]
     var languages: [Language]
+    var llmTags: [LLMTag]?
     var appLanguage: AppLanguage?
     var appTheme: AppTheme?
 }

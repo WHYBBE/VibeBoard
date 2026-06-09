@@ -6,6 +6,7 @@ public struct SharedGroup: Identifiable, Codable, Equatable {
     public var platformIds: [String]
     public var repoName: String
     public var languages: [Language]
+    public var llmTags: [LLMTag]
     public var progress: Double
 
     public init(
@@ -14,6 +15,7 @@ public struct SharedGroup: Identifiable, Codable, Equatable {
         platformIds: [String] = [],
         repoName: String = "",
         languages: [Language] = [],
+        llmTags: [LLMTag] = [],
         progress: Double = 0
     ) {
         self.id = id
@@ -21,6 +23,7 @@ public struct SharedGroup: Identifiable, Codable, Equatable {
         self.platformIds = platformIds
         self.repoName = repoName
         self.languages = languages
+        self.llmTags = llmTags
         self.progress = progress
     }
 }

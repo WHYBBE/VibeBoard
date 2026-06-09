@@ -53,6 +53,8 @@ public struct S {
         var deleteGroupConfirmMessage: String { S.isZh ? "将删除此共享组，不可恢复。确定继续？" : "This shared group will be deleted. This cannot be undone. Continue?" }
         var deletePlatformConfirmTitle: String { S.isZh ? "确认删除平台" : "Remove Platform" }
         var deletePlatformConfirmMessage: String { S.isZh ? "将从项目中移除此平台，不可恢复。确定继续？" : "This platform will be removed from the project. This cannot be undone. Continue?" }
+        var llmTags: String { S.isZh ? "AI 模型" : "AI Models" }
+        var addLLMTag: String { S.isZh ? "添加 AI 模型" : "Add AI Model" }
     }
 
     public static var settings: Settings { .init() }
@@ -90,5 +92,10 @@ public struct S {
         var deleteCustomPlatformConfirmMessage: String { S.isZh ? "将删除此自定义平台及项目中相关数据，不可恢复。确定继续？" : "This custom platform and related project data will be deleted. This cannot be undone. Continue?" }
         var deleteCustomLanguageConfirmTitle: String { S.isZh ? "确认删除自定义语言" : "Delete Custom Language" }
         var deleteCustomLanguageConfirmMessage: String { S.isZh ? "将删除此自定义语言及项目中相关数据，不可恢复。确定继续？" : "This custom language and related project data will be deleted. This cannot be undone. Continue?" }
+        var llm: String { S.isZh ? "AI 模型" : "AI Models" }
+        var deleteLLMTag: String { S.isZh ? "删除此模型" : "Delete AI Model" }
+        var addCustomLLMTag: String { S.isZh ? "添加自定义 AI 模型" : "Add Custom AI Model" }
+        var deleteCustomLLMTagConfirmTitle: String { S.isZh ? "确认删除自定义 AI 模型" : "Delete Custom AI Model" }
+        var deleteCustomLLMTagConfirmMessage: String { S.isZh ? "将删除此自定义 AI 模型及项目中相关数据，不可恢复。确定继续？" : "This custom AI model and related project data will be deleted. This cannot be undone. Continue?" }
     }
 }
