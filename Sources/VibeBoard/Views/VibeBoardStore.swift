@@ -31,17 +31,26 @@ public final class VibeBoardStore: ObservableObject {
             self.appTheme = decoded.appTheme ?? .system
 
             let validIds = Set(self.llmTags.map(\.id))
+            let validLangIds = Set(self.languages.map(\.id))
             for i in self.projects.indices {
                 for j in self.projects[i].platformStatuses.indices {
                     var seen = Set<String>()
                     self.projects[i].platformStatuses[j].llmTags = self.projects[i].platformStatuses[j].llmTags.filter {
                         validIds.contains($0.id) && seen.insert($0.id).inserted
                     }
+                    var seenLang = Set<String>()
+                    self.projects[i].platformStatuses[j].languages = self.projects[i].platformStatuses[j].languages.filter {
+                        validLangIds.contains($0.id) && seenLang.insert($0.id).inserted
+                    }
                 }
                 for j in self.projects[i].sharedGroups.indices {
                     var seen = Set<String>()
                     self.projects[i].sharedGroups[j].llmTags = self.projects[i].sharedGroups[j].llmTags.filter {
                         validIds.contains($0.id) && seen.insert($0.id).inserted
+                    }
+                    var seenLang = Set<String>()
+                    self.projects[i].sharedGroups[j].languages = self.projects[i].sharedGroups[j].languages.filter {
+                        validLangIds.contains($0.id) && seenLang.insert($0.id).inserted
                     }
                 }
             }
@@ -91,7 +100,7 @@ public final class VibeBoardStore: ObservableObject {
     }
 
     public var enabledPlatforms: [Platform] { platforms.filter(\.isEnabled) }
-    public var enabledLanguages: [Language] { languages.filter(\.isEnabled) }
+    public var validLanguageIds: Set<String> { Set(languages.map(\.id)) }
     public var validLLMTagIds: Set<String> { Set(llmTags.map(\.id)) }
 
     // MARK: - Project CRUD
@@ -273,12 +282,6 @@ public final class VibeBoardStore: ObservableObject {
             for pIndex in projects[index].platformStatuses.indices {
                 projects[index].platformStatuses[pIndex].languages.removeAll { $0.id == id }
             }
-        }
-    }
-
-    public func setLanguageEnabled(_ id: String, enabled: Bool) {
-        if let index = languages.firstIndex(where: { $0.id == id }) {
-            languages[index].isEnabled = enabled
         }
     }
 

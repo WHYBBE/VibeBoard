@@ -378,9 +378,6 @@ struct LanguageCard: View {
 
                 Spacer()
 
-                Toggle(S.settings.defaultEnabled, isOn: $language.isEnabled)
-                    .toggleStyle(.switch)
-
                 Button {
                     withAnimation(.easeInOut(duration: 0.15)) { expanded.toggle() }
                 } label: {
@@ -407,24 +404,22 @@ struct LanguageCard: View {
                 }
                 .padding(12)
 
-                if !language.isBuiltIn {
-                    HStack {
-                        Spacer()
-                        Button(S.settings.deleteLanguage, role: .destructive) {
-                            showDeleteConfirm = true
-                        }
-                        .controlSize(.small)
+                HStack {
+                    Spacer()
+                    Button(S.settings.deleteLanguage, role: .destructive) {
+                        showDeleteConfirm = true
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.bottom, 10)
-                    .alert(S.settings.deleteCustomLanguageConfirmTitle, isPresented: $showDeleteConfirm) {
-                        Button(S.settings.deleteLanguage, role: .destructive) {
-                            store.removeLanguage(id: language.id)
-                        }
-                        Button(S.sidebar.cancel, role: .cancel) {}
-                    } message: {
-                        Text(S.settings.deleteCustomLanguageConfirmMessage)
+                    .controlSize(.small)
+                }
+                .padding(.horizontal, 12)
+                .padding(.bottom, 10)
+                .alert(S.settings.deleteCustomLanguageConfirmTitle, isPresented: $showDeleteConfirm) {
+                    Button(S.settings.deleteLanguage, role: .destructive) {
+                        store.removeLanguage(id: language.id)
                     }
+                    Button(S.sidebar.cancel, role: .cancel) {}
+                } message: {
+                    Text(S.settings.deleteCustomLanguageConfirmMessage)
                 }
             }
         }

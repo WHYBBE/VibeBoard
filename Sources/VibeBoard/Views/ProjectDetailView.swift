@@ -189,7 +189,7 @@ struct ProjectDetailView: View {
                         .foregroundStyle(.secondary)
                     }
 
-                    ForEach(group.languages) { lang in
+                    ForEach(group.languages.filter { store.validLanguageIds.contains($0.id) }) { lang in
                         Text(lang.displayName)
                             .font(.callout)
                             .padding(.horizontal, 8)
@@ -254,7 +254,7 @@ struct ProjectDetailView: View {
 
                 if !status.languages.isEmpty || !status.llmTags.filter({ store.validLLMTagIds.contains($0.id) }).isEmpty {
                     HStack(spacing: 6) {
-                        ForEach(status.languages) { lang in
+                        ForEach(status.languages.filter { store.validLanguageIds.contains($0.id) }) { lang in
                             Text(lang.displayName)
                                 .font(.callout)
                                 .padding(.horizontal, 8)
