@@ -5,11 +5,11 @@ import Combine
 public final class VibeBoardStore: ObservableObject {
     @Published public var projects: [VibeProject] = []
     @Published public var selectedProjectId: UUID?
-    @Published public var platforms: [Platform]
-    @Published public var languages: [Language]
-    @Published public var llmTags: [LLMTag]
-    @Published public var appLanguage: AppLanguage
-    @Published public var appTheme: AppTheme
+    @Published public var platforms: [Platform] = Platform.builtInAll
+    @Published public var languages: [Language] = Language.builtInAll
+    @Published public var llmTags: [LLMTag] = LLMTag.builtInAll
+    @Published public var appLanguage: AppLanguage = AppLanguage(rawValue: UserDefaults.standard.string(forKey: "VB_appLanguage") ?? "") ?? .zh
+    @Published public var appTheme: AppTheme = AppTheme(rawValue: UserDefaults.standard.string(forKey: "VB_appTheme") ?? "") ?? .system
 
     private let saveURL: URL
     private var saveCancellable: AnyCancellable?
@@ -68,6 +68,8 @@ public final class VibeBoardStore: ObservableObject {
         }
 
         S.lang = appLanguage
+        UserDefaults.standard.set(appTheme.rawValue, forKey: "VB_appTheme")
+        UserDefaults.standard.set(appLanguage.rawValue, forKey: "VB_appLanguage")
 
         saveCancellable = objectWillChange
             .debounce(for: .milliseconds(500), scheduler: RunLoop.main)
@@ -97,6 +99,8 @@ public final class VibeBoardStore: ObservableObject {
         )
         guard let data = try? JSONEncoder().encode(snapshot) else { return }
         try? data.write(to: saveURL, options: .atomic)
+        UserDefaults.standard.set(appLanguage.rawValue, forKey: "VB_appLanguage")
+        UserDefaults.standard.set(appTheme.rawValue, forKey: "VB_appTheme")
     }
 
     public var selectedProject: VibeProject? {

@@ -22,6 +22,7 @@ struct OverviewView: View {
                 .padding(28)
             }
         }
+        .background(.background)
     }
 
     private func overviewCard(_ project: VibeProject) -> some View {

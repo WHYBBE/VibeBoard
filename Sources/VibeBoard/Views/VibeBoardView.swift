@@ -2,51 +2,28 @@ import SwiftUI
 
 public struct VibeBoardView: View {
     @ObservedObject var store: VibeBoardStore
-    @State private var isOverviewMode: Bool = UserDefaults.standard.bool(forKey: "isOverviewMode") != false
-    @State private var showingNewProject = false
+    @State private var isOverviewMode: Bool = {
+        let mode = UserDefaults.standard.bool(forKey: "isOverviewMode") != false
+        return mode
+    }()
+    @State private var columnVisibility: NavigationSplitViewVisibility = {
+        UserDefaults.standard.bool(forKey: "isOverviewMode") != false ? .detailOnly : .all
+    }()
 
     public init(store: VibeBoardStore) {
         self.store = store
     }
 
     public var body: some View {
-        Group {
+        NavigationSplitView(columnVisibility: $columnVisibility) {
+            SidebarView(store: store)
+        } detail: {
             if isOverviewMode {
                 OverviewView(store: store, onProjectTap: { id in
                     store.selectedProjectId = id
-                    withAnimation(.easeInOut(duration: 0.2)) { isOverviewMode = false }
+                    isOverviewMode = false
                 })
-                .toolbar {
-                    ToolbarItem(placement: .primaryAction) {
-                        Button(action: { showingNewProject = true }) {
-                            Label(S.sidebar.newProject, systemImage: "plus")
-                        }
-                    }
-                    ToolbarItem(placement: .navigation) {
-                        Button {
-                            withAnimation(.easeInOut(duration: 0.2)) { isOverviewMode = false }
-                        } label: {
-                            Label(S.sidebar.projects, systemImage: "sidebar.left")
-                        }
-                    }
-                }
-            } else {
-                projectSplitView
-            }
-        }
-        .sheet(isPresented: $showingNewProject) {
-            NewProjectSheet(store: store)
-        }
-        .onChange(of: isOverviewMode) { _, newValue in
-            UserDefaults.standard.set(newValue, forKey: "isOverviewMode")
-        }
-    }
-
-    private var projectSplitView: some View {
-        NavigationSplitView {
-            SidebarView(store: store)
-        } detail: {
-            if let selectedId = store.selectedProjectId,
+            } else if let selectedId = store.selectedProjectId,
                let index = store.projects.firstIndex(where: { $0.id == selectedId }) {
                 ProjectDetailView(store: store, project: $store.projects[index])
             } else {
@@ -57,14 +34,30 @@ public struct VibeBoardView: View {
                 )
             }
         }
+        .navigationSplitViewColumnWidth(250)
         .toolbar {
-            ToolbarItem(placement: .navigation) {
+            ToolbarItem(placement: .primaryAction) {
                 Button {
-                    withAnimation(.easeInOut(duration: 0.2)) { isOverviewMode = true }
+                    isOverviewMode.toggle()
                 } label: {
-                    Label(S.sidebar.overview, systemImage: "square.grid.2x2")
+                    Label(
+                        isOverviewMode ? S.sidebar.projects : S.sidebar.overview,
+                        systemImage: isOverviewMode ? "list.bullet" : "square.grid.2x2"
+                    )
                 }
             }
+        }
+        .onChange(of: isOverviewMode) { _, newValue in
+            UserDefaults.standard.set(newValue, forKey: "isOverviewMode")
+            columnVisibility = newValue ? .detailOnly : .all
+        }
+        .onChange(of: columnVisibility) { _, newValue in
+            if isOverviewMode && newValue != .detailOnly {
+                isOverviewMode = false
+            }
+        }
+        .onAppear {
+            columnVisibility = isOverviewMode ? .detailOnly : .all
         }
     }
 }
