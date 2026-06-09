@@ -29,7 +29,7 @@ public struct PlatformStatus: Identifiable, Equatable {
     public init(platform: Platform, isSupported: Bool = false, progress: Double = 0, languages: [Language] = [], llmTags: [LLMTag] = []) {
         self.platformId = platform.id
         self.isSupported = isSupported
-        self.repoName = platform.defaultRepoName
+        self.repoName = "app-\(platform.id.lowercased())"
         self.progress = progress
         self.languages = languages
         self.llmTags = llmTags

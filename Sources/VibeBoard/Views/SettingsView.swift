@@ -195,11 +195,6 @@ struct PlatformCard: View {
                             .textFieldStyle(.roundedBorder)
                             .frame(maxWidth: 160)
                     }
-                    FieldRow(label: S.settings.repoName) {
-                        TextField("", text: $platform.defaultRepoName)
-                            .textFieldStyle(.roundedBorder)
-                            .frame(maxWidth: 160)
-                    }
                 }
                 .padding(12)
 
@@ -247,11 +242,6 @@ struct AddPlatformCard: View {
                     .textFieldStyle(.roundedBorder)
                     .frame(maxWidth: 160)
             }
-            FieldRow(label: S.settings.repoName) {
-                TextField("", text: $draft.repoName)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(maxWidth: 160)
-            }
 
             HStack {
                 Spacer()
@@ -259,8 +249,7 @@ struct AddPlatformCard: View {
                     let p = Platform(
                         id: draft.name.trimmingCharacters(in: .whitespaces),
                         displayName: draft.name.trimmingCharacters(in: .whitespaces),
-                        icon: draft.icon.trimmingCharacters(in: .whitespaces).ifEmpty("desktopcomputer") ?? "desktopcomputer",
-                        defaultRepoName: draft.repoName.trimmingCharacters(in: .whitespaces).ifEmpty(nil)
+                        icon: draft.icon.trimmingCharacters(in: .whitespaces).ifEmpty("desktopcomputer") ?? "desktopcomputer"
                     )
                     store.addPlatform(p)
                     draft = PlatformDraft()
@@ -278,7 +267,6 @@ struct AddPlatformCard: View {
 struct PlatformDraft {
     var name: String = ""
     var icon: String = "desktopcomputer"
-    var repoName: String = ""
 }
 
 // MARK: - Field Row
