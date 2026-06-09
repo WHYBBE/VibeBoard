@@ -26,6 +26,7 @@ struct VibeBoardApp: App {
 
         Settings {
             SettingsView(store: store)
+                .frame(minWidth: 400, maxWidth: 520, minHeight: 400)
                 .environment(\.locale, store.appLanguage.locale)
                 .preferredColorScheme(store.appTheme.colorScheme)
         }
