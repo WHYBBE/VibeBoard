@@ -13,168 +13,163 @@ struct OverviewView: View {
                     description: Text(S.sidebar.noProjectHint)
                 )
             } else {
-                VStack(spacing: 12) {
+                LazyVStack(spacing: 20) {
                     ForEach(store.projects) { project in
                         overviewCard(project)
                             .onTapGesture { onProjectTap(project.id) }
                     }
                 }
-                .padding(20)
+                .padding(28)
             }
         }
     }
 
     private func overviewCard(_ project: VibeProject) -> some View {
-        HStack(alignment: .top, spacing: 14) {
-            overviewLeft(project)
-            overviewRight(project)
-        }
-        .padding(14)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.background.secondary)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-        .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color.gray.opacity(0.15), lineWidth: 0.5))
-    }
-
-    private func overviewLeft(_ project: VibeProject) -> some View {
-        let supported = project.platformStatuses.filter(\.isSupported).count
-        let total = project.platformStatuses.count
-
-        return VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 12) {
             Text(project.name)
-                .font(.headline)
+                .font(.title2.bold())
                 .lineLimit(1)
 
-            Text(project.createdAt.formatted(date: .abbreviated, time: .omitted))
-                .font(.system(size: 9))
-                .foregroundStyle(.tertiary)
-
             if !project.keywords.isEmpty {
-                FlowLayout(spacing: 4) {
+                FlowLayout(spacing: 6) {
                     ForEach(project.keywords, id: \.self) { kw in
                         Text(kw)
-                            .font(.system(size: 9))
-                            .padding(.horizontal, 5)
-                            .padding(.vertical, 1)
-                            .background(.tint.opacity(0.08))
+                            .font(.callout.weight(.medium))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(.tint.opacity(0.1))
                             .clipShape(Capsule())
                     }
                 }
-                .padding(.top, 2)
             }
 
-            Spacer(minLength: 0)
+            let sharedPlatformIds = Set(project.sharedGroups.flatMap(\.platformIds))
 
-            Text("\(supported)/\(total)")
-                .font(.caption.monospacedDigit().bold())
-                .foregroundStyle(supported == total && total > 0 ? .green : .secondary)
-        }
-        .frame(width: 140, alignment: .leading)
-    }
+            if !project.sharedGroups.isEmpty || !project.platformStatuses.isEmpty {
+                Divider()
 
-    private func overviewRight(_ project: VibeProject) -> some View {
-        let sharedPlatformIds = Set(project.sharedGroups.flatMap(\.platformIds))
+                VStack(spacing: 10) {
+                    ForEach(project.sharedGroups) { group in
+                        sharedGroupRow(group)
+                    }
 
-        return VStack(spacing: 4) {
-            ForEach(project.sharedGroups) { group in
-                sharedGroupRow(group)
-            }
-
-            ForEach(project.platformStatuses.filter { !sharedPlatformIds.contains($0.platformId) }) { status in
-                platformRow(status)
+                    ForEach(project.platformStatuses.filter { !sharedPlatformIds.contains($0.platformId) }) { status in
+                        platformRow(status)
+                    }
+                }
             }
         }
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.background.secondary)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .shadow(color: .black.opacity(0.08), radius: 6, y: 3)
+        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Color.gray.opacity(0.12), lineWidth: 0.5))
     }
 
     private func sharedGroupRow(_ group: SharedGroup) -> some View {
-        HStack(spacing: 6) {
-            Image(systemName: "square.on.square")
-                .font(.caption2)
-                .foregroundStyle(.blue)
+        HStack(spacing: 10) {
+            HStack(spacing: 5) {
+                Image(systemName: "square.on.square")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(.blue)
 
-            HStack(spacing: 2) {
                 ForEach(Array(group.platformIds.enumerated()), id: \.offset) { i, pid in
                     let p = store.platforms.first { $0.id == pid }
-                    if i > 0 { Text("+").font(.system(size: 8)).foregroundStyle(.tertiary) }
-                    Image(systemName: p?.icon ?? "questionmark.square").font(.caption2)
+                    if i > 0 {
+                        Text("+")
+                            .font(.callout.weight(.bold))
+                            .foregroundStyle(.tertiary)
+                    }
+                    Image(systemName: p?.icon ?? "questionmark.square")
+                        .font(.body)
+                }
+
+                if !group.name.isEmpty {
+                    Text(group.name)
+                        .font(.callout.weight(.medium))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(Color.blue.opacity(0.1))
+            .clipShape(Capsule())
+
+            FlowLayout(spacing: 5) {
+                ForEach(group.languages) { lang in
+                    langChip(lang.displayName)
+                }
+                ForEach(group.llmTags.filter { store.validLLMTagIds.contains($0.id) }) { tag in
+                    llmChip(tag.displayName)
+                }
+                if group.progress > 0 {
+                    progressChip(group.progress)
                 }
             }
 
-            if !group.name.isEmpty {
-                Text(group.name).font(.caption2).foregroundStyle(.secondary)
-            }
-
-            Spacer()
-
-            langTags(group.languages)
-
-            llmTagTags(group.llmTags.filter { store.validLLMTagIds.contains($0.id) })
-
-            if group.progress > 0 { pctLabel(group.progress) }
+            Spacer(minLength: 0)
         }
-        .padding(.horizontal, 6)
-        .padding(.vertical, 4)
-        .background(Color.blue.opacity(0.05))
-        .clipShape(RoundedRectangle(cornerRadius: 5))
     }
 
     private func platformRow(_ status: PlatformStatus) -> some View {
-        let platform = store.platforms.first { $0.id == status.platformId }
+        HStack(spacing: 10) {
+            HStack(spacing: 5) {
+                Image(systemName: store.platforms.first { $0.id == status.platformId }?.icon ?? "questionmark.square")
+                    .font(.body.weight(.medium))
+                    .foregroundStyle(status.isSupported ? .green : .secondary)
 
-        return HStack(spacing: 6) {
-            Image(systemName: platform?.icon ?? "questionmark.square")
-                .font(.caption2)
-                .foregroundStyle(status.isSupported ? .green : Color.gray.opacity(0.4))
-
-            Text(platform?.displayName ?? status.platformId)
-                .font(.caption)
-                .frame(width: 64, alignment: .leading)
-                .foregroundStyle(status.isSupported ? .primary : .secondary)
-
-            Spacer()
-
-            langTags(status.languages)
-
-            llmTagTags(status.llmTags.filter { store.validLLMTagIds.contains($0.id) })
-
-            if status.isSupported, status.progress > 0 {
-                pctLabel(status.progress)
+                Text(store.platforms.first { $0.id == status.platformId }?.displayName ?? status.platformId)
+                    .font(.callout.weight(.medium))
+                    .foregroundStyle(status.isSupported ? .primary : .secondary)
             }
-        }
-        .frame(height: 20)
-        .opacity(status.isSupported ? 1 : 0.4)
-    }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(status.isSupported ? Color.green.opacity(0.1) : Color.gray.opacity(0.08))
+            .clipShape(Capsule())
+            .opacity(status.isSupported ? 1 : 0.5)
 
-    private func langTags(_ languages: [Language]) -> some View {
-        HStack(spacing: 3) {
-            ForEach(languages) { lang in
-                Text(lang.displayName)
-                    .font(.system(size: 9))
-                    .padding(.horizontal, 4)
-                    .padding(.vertical, 1)
-                    .background(.tint.opacity(0.1))
-                    .clipShape(Capsule())
+            FlowLayout(spacing: 5) {
+                ForEach(status.languages) { lang in
+                    langChip(lang.displayName)
+                }
+                ForEach(status.llmTags.filter { store.validLLMTagIds.contains($0.id) }) { tag in
+                    llmChip(tag.displayName)
+                }
+                if status.isSupported, status.progress > 0 {
+                    progressChip(status.progress)
+                }
             }
+
+            Spacer(minLength: 0)
         }
     }
 
-    private func pctLabel(_ progress: Double) -> some View {
+    private func langChip(_ name: String) -> some View {
+        Text(name)
+            .font(.callout.weight(.medium))
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(.tint.opacity(0.12))
+            .clipShape(Capsule())
+    }
+
+    private func llmChip(_ name: String) -> some View {
+        Text(name)
+            .font(.callout.weight(.medium))
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(Color.purple.opacity(0.12))
+            .clipShape(Capsule())
+    }
+
+    private func progressChip(_ progress: Double) -> some View {
         Text("\(Int(progress * 100))%")
-            .font(.system(size: 9).monospacedDigit())
-            .foregroundStyle(.secondary)
-            .frame(width: 28, alignment: .trailing)
-    }
-
-    private func llmTagTags(_ tags: [LLMTag]) -> some View {
-        HStack(spacing: 3) {
-            ForEach(tags) { tag in
-                Text(tag.displayName)
-                    .font(.system(size: 9))
-                    .padding(.horizontal, 4)
-                    .padding(.vertical, 1)
-                    .background(Color.purple.opacity(0.12))
-                    .clipShape(Capsule())
-            }
-        }
+            .font(.callout.weight(.semibold).monospacedDigit())
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .foregroundStyle(progress >= 1 ? .green : .secondary)
+            .background(progress >= 1 ? Color.green.opacity(0.12) : Color.gray.opacity(0.08))
+            .clipShape(Capsule())
     }
 }
