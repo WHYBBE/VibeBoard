@@ -29,6 +29,7 @@ public struct Platform: Identifiable, Codable, Hashable, Sendable {
     public static let linux = Platform(id: "linux", displayName: "Linux", icon: "server.rack", defaultRepoName: "app-linux", isBuiltIn: true)
     public static let android = Platform(id: "android", displayName: "Android", icon: "smartphone", defaultRepoName: "app-android", isBuiltIn: true)
     public static let ios = Platform(id: "ios", displayName: "iOS", icon: "iphone", defaultRepoName: "app-ios", isBuiltIn: true)
+    public static let web = Platform(id: "web", displayName: "Web", icon: "globe", defaultRepoName: "app-web", isBuiltIn: true, isEnabled: false)
 
-    public static let builtInAll: [Platform] = [.macOS, .windows, .linux, .android, .ios]
+    public static let builtInAll: [Platform] = [.macOS, .windows, .linux, .android, .ios, .web]
 }

@@ -30,6 +30,11 @@ public final class VibeBoardStore: ObservableObject {
             self.appLanguage = decoded.appLanguage ?? .zh
             self.appTheme = decoded.appTheme ?? .system
 
+            let existingPlatformIds = Set(self.platforms.map(\.id))
+            for p in Platform.builtInAll where !existingPlatformIds.contains(p.id) {
+                self.platforms.append(p)
+            }
+
             let validIds = Set(self.llmTags.map(\.id))
             let validLangIds = Set(self.languages.map(\.id))
             for i in self.projects.indices {
@@ -344,6 +349,19 @@ public final class VibeBoardStore: ObservableObject {
         appLanguage = decoded.appLanguage ?? .zh
         appTheme = decoded.appTheme ?? .system
         S.lang = appLanguage
+
+        let existingPlatformIds = Set(platforms.map(\.id))
+        for p in Platform.builtInAll where !existingPlatformIds.contains(p.id) {
+            platforms.append(p)
+        }
+        let existingLanguageIds = Set(languages.map(\.id))
+        for l in Language.builtInAll where !existingLanguageIds.contains(l.id) {
+            languages.append(l)
+        }
+        let existingLLMTagIds = Set(llmTags.map(\.id))
+        for t in LLMTag.builtInAll where !existingLLMTagIds.contains(t.id) {
+            llmTags.append(t)
+        }
         return true
     }
 
