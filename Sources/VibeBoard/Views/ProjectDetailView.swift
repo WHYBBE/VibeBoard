@@ -179,12 +179,14 @@ struct ProjectDetailView: View {
             HStack(spacing: 8) {
                 Text(sub.name.isEmpty ? S.detail.subProjectName : sub.name)
                     .font(.body.weight(.semibold))
-                if !sub.repoName.isEmpty {
-                    HStack(spacing: 3) {
-                        Image(systemName: "folder").font(.caption)
-                        Text(sub.repoName).font(.callout)
+                if !sub.repoURL.isEmpty {
+                    Link(destination: URL(string: sub.repoURL) ?? URL(string: "https://example.com")!) {
+                        HStack(spacing: 3) {
+                            Image(systemName: "link").font(.caption)
+                            Text(sub.repoURL).font(.callout).lineLimit(1)
+                        }
+                        .foregroundStyle(.blue)
                     }
-                    .foregroundStyle(.secondary)
                 }
             }
             HStack(spacing: 4) {
@@ -313,8 +315,7 @@ struct ProjectDetailView: View {
                                 let sub = SubProject(
                                     name: platform.displayName,
                                     platformIds: [platform.id],
-                                    isSupported: true,
-                                    repoName: "app-\(platform.id.lowercased())"
+                                    isSupported: true
                                 )
                                 store.addSubProjectToProject(sub, projectId: project.id)
                             }

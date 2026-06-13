@@ -48,13 +48,13 @@ struct SubProjectRow: View {
             }
 
             HStack(spacing: 12) {
-                Label(S.detail.repoName, systemImage: "folder")
+                Label(S.detail.repoURL, systemImage: "link")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .frame(width: 60, alignment: .trailing)
-                TextField(S.detail.repoName, text: $subProject.repoName)
+                TextField(S.detail.repoURL, text: $subProject.repoURL)
                     .textFieldStyle(.roundedBorder)
-                    .frame(maxWidth: 200)
+                    .frame(maxWidth: 300)
             }
 
             HStack(spacing: 12) {

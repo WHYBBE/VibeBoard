@@ -35,7 +35,7 @@ public struct S {
         var languages: String { S.isZh ? "开发语言" : "Languages" }
         var platformStatus: String { S.isZh ? "子项目" : "Sub Projects" }
         var addPlatform: String { S.isZh ? "为启用的平台创建子项目" : "Create for Enabled Platforms" }
-        var repoName: String { S.isZh ? "仓库名" : "Repo Name" }
+        var repoURL: String { S.isZh ? "项目地址" : "Repo URL" }
         var implemented: String { S.isZh ? "已实现" : "Done" }
         var platformCount: String { S.isZh ? "平台" : "platforms" }
         var edit: String { S.isZh ? "编辑" : "Edit" }
@@ -79,7 +79,7 @@ public struct S {
         var language: String { S.isZh ? "语言" : "Languages" }
         var icon: String { S.isZh ? "图标" : "Icon" }
         var name: String { S.isZh ? "名称" : "Name" }
-        var repoName: String { S.isZh ? "仓库名" : "Repo Name" }
+        var repoURL: String { S.isZh ? "项目地址" : "Repo URL" }
         var displayName: String { S.isZh ? "显示名" : "Display Name" }
         var deletePlatform: String { S.isZh ? "删除此平台" : "Delete Platform" }
         var deleteLanguage: String { S.isZh ? "删除此语言" : "Delete Language" }
