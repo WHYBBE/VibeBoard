@@ -104,66 +104,6 @@ public final class VibeBoardStore: ObservableObject {
         }
     }
 
-    // MARK: - Platform Status
-
-    public func setPlatformSupported(_ platformId: String, projectId: UUID, supported: Bool) {
-        guard let index = projects.firstIndex(where: { $0.id == projectId }) else { return }
-        if let pIndex = projects[index].platformStatuses.firstIndex(where: { $0.platformId == platformId }) {
-            projects[index].platformStatuses[pIndex].isSupported = supported
-        }
-    }
-
-    public func setPlatformProgress(_ platformId: String, projectId: UUID, progress: Double) {
-        guard let index = projects.firstIndex(where: { $0.id == projectId }) else { return }
-        if let pIndex = projects[index].platformStatuses.firstIndex(where: { $0.platformId == platformId }) {
-            projects[index].platformStatuses[pIndex].progress = progress
-        }
-    }
-
-    public func setPlatformRepoName(_ platformId: String, projectId: UUID, repoName: String) {
-        guard let index = projects.firstIndex(where: { $0.id == projectId }) else { return }
-        if let pIndex = projects[index].platformStatuses.firstIndex(where: { $0.platformId == platformId }) {
-            projects[index].platformStatuses[pIndex].repoName = repoName
-        }
-    }
-
-    public func addPlatformStatusToProject(_ platform: Platform, projectId: UUID) {
-        guard let index = projects.firstIndex(where: { $0.id == projectId }) else { return }
-        if projects[index].platformStatuses.contains(where: { $0.platformId == platform.id }) { return }
-        projects[index].platformStatuses.append(PlatformStatus(platform: platform, isSupported: platform.isEnabled))
-    }
-
-    public func removePlatformStatusFromProject(_ platformId: String, projectId: UUID) {
-        guard let index = projects.firstIndex(where: { $0.id == projectId }) else { return }
-        projects[index].platformStatuses.removeAll { $0.platformId == platformId }
-    }
-
-    // MARK: - Platform Status Languages
-
-    public func toggleLanguageInPlatformStatus(_ language: Language, platformId: String, projectId: UUID) {
-        guard let index = projects.firstIndex(where: { $0.id == projectId }) else { return }
-        if let pIndex = projects[index].platformStatuses.firstIndex(where: { $0.platformId == platformId }) {
-            if let lIndex = projects[index].platformStatuses[pIndex].languages.firstIndex(of: language) {
-                projects[index].platformStatuses[pIndex].languages.remove(at: lIndex)
-            } else {
-                projects[index].platformStatuses[pIndex].languages.append(language)
-            }
-        }
-    }
-
-    // MARK: - Platform Status LLM Tags
-
-    public func toggleLLMTagInPlatformStatus(_ tag: LLMTag, platformId: String, projectId: UUID) {
-        guard let index = projects.firstIndex(where: { $0.id == projectId }) else { return }
-        if let pIndex = projects[index].platformStatuses.firstIndex(where: { $0.platformId == platformId }) {
-            if let tIndex = projects[index].platformStatuses[pIndex].llmTags.firstIndex(of: tag) {
-                projects[index].platformStatuses[pIndex].llmTags.remove(at: tIndex)
-            } else {
-                projects[index].platformStatuses[pIndex].llmTags.append(tag)
-            }
-        }
-    }
-
     // MARK: - SubProject CRUD
 
     public func addSubProject(_ sub: SubProject) {
@@ -232,6 +172,11 @@ public final class VibeBoardStore: ObservableObject {
         return subProjects.filter { !boundIds.contains($0.id) }
     }
 
+    public func addSubProjectToProject(_ sub: SubProject, projectId: UUID) {
+        addSubProject(sub)
+        bindSubProject(sub.id, toProject: projectId)
+    }
+
     // MARK: - Project Keywords
 
     public func setProjectKeywords(_ keywords: [String], projectId: UUID) {
@@ -261,8 +206,8 @@ public final class VibeBoardStore: ObservableObject {
 
     public func removePlatform(id: String) {
         platforms.removeAll { $0.id == id }
-        for index in projects.indices {
-            projects[index].platformStatuses.removeAll { $0.platformId == id }
+        for i in subProjects.indices {
+            subProjects[i].platformIds.removeAll { $0 == id }
         }
     }
 
@@ -288,11 +233,6 @@ public final class VibeBoardStore: ObservableObject {
 
     public func removeLanguage(id: String) {
         languages.removeAll { $0.id == id }
-        for index in projects.indices {
-            for pIndex in projects[index].platformStatuses.indices {
-                projects[index].platformStatuses[pIndex].languages.removeAll { $0.id == id }
-            }
-        }
         for i in subProjects.indices {
             subProjects[i].languages.removeAll { $0.id == id }
         }
@@ -314,11 +254,6 @@ public final class VibeBoardStore: ObservableObject {
 
     public func removeLLMTag(id: String) {
         llmTags.removeAll { $0.id == id }
-        for index in projects.indices {
-            for pIndex in projects[index].platformStatuses.indices {
-                projects[index].platformStatuses[pIndex].llmTags.removeAll { $0.id == id }
-            }
-        }
         for i in subProjects.indices {
             subProjects[i].llmTags.removeAll { $0.id == id }
         }

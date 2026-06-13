@@ -11,6 +11,8 @@ public struct SubProject: Identifiable, Codable, Equatable {
     public var progress: Double
     public var createdAt: Date
 
+    public var isShared: Bool { platformIds.count > 1 }
+
     public init(
         id: UUID = UUID(),
         name: String,

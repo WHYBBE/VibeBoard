@@ -3,14 +3,15 @@ import SwiftUI
 struct SubProjectRow: View {
     @ObservedObject var store: VibeBoardStore
     @Binding var subProject: SubProject
+    var projectId: UUID?
     @State private var showDeleteConfirm = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 10) {
-                Image(systemName: "cube.box")
+                Image(systemName: subProject.isShared ? "link.circle.fill" : "cube.box")
                     .font(.title3)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(subProject.isShared ? .blue : .orange)
                     .frame(width: 24)
 
                 TextField(S.detail.subProjectName, text: $subProject.name)
@@ -21,6 +22,13 @@ struct SubProjectRow: View {
 
                 Toggle(S.detail.implemented, isOn: $subProject.isSupported)
                     .toggleStyle(.switch)
+
+                if let projectId = projectId {
+                    Button(S.detail.unbind) {
+                        store.unbindSubProject(subProject.id, fromProject: projectId)
+                    }
+                    .controlSize(.small)
+                }
 
                 Button(role: .destructive) {
                     showDeleteConfirm = true
@@ -122,9 +130,12 @@ struct SubProjectRow: View {
             }
         }
         .padding(10)
-        .background(Color.orange.opacity(0.05))
+        .background(subProject.isShared ? Color.blue.opacity(0.05) : Color.orange.opacity(0.05))
         .clipShape(RoundedRectangle(cornerRadius: 8))
-        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color.orange.opacity(0.3), lineWidth: 0.5))
+        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(
+            subProject.isShared ? Color.blue.opacity(0.3) : Color.orange.opacity(0.3),
+            lineWidth: 0.5
+        ))
     }
 }
 
@@ -146,6 +157,52 @@ struct PlatformToggleTag: View {
             .padding(.horizontal, 10)
             .padding(.vertical, 4)
             .background(isSelected ? Color.blue.opacity(0.2) : Color.gray.opacity(0.1))
+            .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(isSelected ? .primary : .secondary)
+    }
+}
+
+struct LanguageToggleTag: View {
+    let language: Language
+    let isSelected: Bool
+    let onToggle: () -> Void
+
+    var body: some View {
+        Button(action: onToggle) {
+            HStack(spacing: 4) {
+                Text(language.displayName)
+                    .font(.subheadline)
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .font(.caption2)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 4)
+            .background(isSelected ? Color.accentColor.opacity(0.2) : Color.gray.opacity(0.1))
+            .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(isSelected ? .primary : .secondary)
+    }
+}
+
+struct LLMTagToggleTag: View {
+    let tag: LLMTag
+    let isSelected: Bool
+    let onToggle: () -> Void
+
+    var body: some View {
+        Button(action: onToggle) {
+            HStack(spacing: 4) {
+                Text(tag.displayName)
+                    .font(.subheadline)
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .font(.caption2)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 4)
+            .background(isSelected ? Color.purple.opacity(0.2) : Color.gray.opacity(0.1))
             .clipShape(Capsule())
         }
         .buttonStyle(.plain)

@@ -6,7 +6,7 @@ struct SidebarView: View {
     var body: some View {
         List(selection: $store.selectedProjectId) {
             ForEach(store.projects) { project in
-                ProjectRow(project: project, isSelected: store.selectedProjectId == project.id)
+                ProjectRow(project: project, isSelected: store.selectedProjectId == project.id, subProjectCount: store.subProjects(forProject: project.id).count)
                     .tag(project.id)
                     .contextMenu {
                         Button(role: .destructive) {
@@ -71,7 +71,7 @@ struct NewProjectSheet: View {
                     .keyboardShortcut(.cancelAction)
 
                 Button(S.sidebar.create) {
-                    let project = VibeProject(name: name, platformStatuses: store.enabledPlatforms.map { PlatformStatus(platform: $0, isSupported: $0.isEnabled) })
+                    let project = VibeProject(name: name)
                     store.addProject(project)
                     dismiss()
                 }

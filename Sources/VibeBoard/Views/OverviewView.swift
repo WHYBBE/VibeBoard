@@ -26,7 +26,9 @@ struct OverviewView: View {
     }
 
     private func overviewCard(_ project: VibeProject) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        let boundSubs = store.subProjects.filter { sub in project.subProjectIds.contains(sub.id) }
+
+        return VStack(alignment: .leading, spacing: 12) {
             Text(project.name)
                 .font(.title2.bold())
                 .lineLimit(1)
@@ -44,18 +46,12 @@ struct OverviewView: View {
                 }
             }
 
-            let boundSubs = store.subProjects.filter { sub in project.subProjectIds.contains(sub.id) }
-
-            if !boundSubs.isEmpty || !project.platformStatuses.isEmpty {
+            if !boundSubs.isEmpty {
                 Divider()
 
                 VStack(spacing: 10) {
                     ForEach(boundSubs) { sub in
                         subProjectRow(sub)
-                    }
-
-                    ForEach(project.platformStatuses) { status in
-                        platformRow(status)
                     }
                 }
             }
@@ -68,32 +64,38 @@ struct OverviewView: View {
         .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Color.gray.opacity(0.12), lineWidth: 0.5))
     }
 
-    private func platformRow(_ status: PlatformStatus) -> some View {
+    private func subProjectRow(_ sub: SubProject) -> some View {
         HStack(spacing: 10) {
             HStack(spacing: 5) {
-                Image(systemName: store.platforms.first { $0.id == status.platformId }?.icon ?? "questionmark.square")
-                    .font(.body.weight(.medium))
-                    .foregroundStyle(status.isSupported ? .green : .secondary)
+                Image(systemName: sub.isShared ? "link.circle.fill" : "cube.box")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(sub.isShared ? .blue : .orange)
 
-                Text(store.platforms.first { $0.id == status.platformId }?.displayName ?? status.platformId)
+                Text(sub.name.isEmpty ? S.detail.subProjectName : sub.name)
                     .font(.callout.weight(.medium))
-                    .foregroundStyle(status.isSupported ? .primary : .secondary)
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
-            .background(status.isSupported ? Color.green.opacity(0.1) : Color.gray.opacity(0.08))
+            .background(sub.isShared ? Color.blue.opacity(0.1) : Color.orange.opacity(0.1))
             .clipShape(Capsule())
-            .opacity(status.isSupported ? 1 : 0.5)
+
+            HStack(spacing: 1) {
+                ForEach(sub.platformIds, id: \.self) { pid in
+                    let p = store.platforms.first { $0.id == pid }
+                    Image(systemName: p?.icon ?? "questionmark.square")
+                        .font(.caption)
+                }
+            }
 
             FlowLayout(spacing: 5) {
-                ForEach(status.languages) { lang in
+                ForEach(sub.languages.filter { store.validLanguageIds.contains($0.id) }) { lang in
                     langChip(lang.displayName)
                 }
-                ForEach(status.llmTags.filter { store.validLLMTagIds.contains($0.id) }) { tag in
+                ForEach(sub.llmTags.filter { store.validLLMTagIds.contains($0.id) }) { tag in
                     llmChip(tag.displayName)
                 }
-                if status.isSupported, status.progress > 0 {
-                    progressChip(status.progress)
+                if sub.progress > 0 {
+                    progressChip(sub.progress)
                 }
             }
 
@@ -127,44 +129,5 @@ struct OverviewView: View {
             .foregroundStyle(progress >= 1 ? .green : .secondary)
             .background(progress >= 1 ? Color.green.opacity(0.12) : Color.gray.opacity(0.08))
             .clipShape(Capsule())
-    }
-
-    private func subProjectRow(_ sub: SubProject) -> some View {
-        HStack(spacing: 10) {
-            HStack(spacing: 5) {
-                Image(systemName: "cube.box")
-                    .font(.body.weight(.semibold))
-                    .foregroundStyle(.orange)
-
-                Text(sub.name)
-                    .font(.callout.weight(.medium))
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(Color.orange.opacity(0.1))
-            .clipShape(Capsule())
-
-            HStack(spacing: 1) {
-                ForEach(sub.platformIds, id: \.self) { pid in
-                    let p = store.platforms.first { $0.id == pid }
-                    Image(systemName: p?.icon ?? "questionmark.square")
-                        .font(.caption)
-                }
-            }
-
-            FlowLayout(spacing: 5) {
-                ForEach(sub.languages) { lang in
-                    langChip(lang.displayName)
-                }
-                ForEach(sub.llmTags.filter { store.validLLMTagIds.contains($0.id) }) { tag in
-                    llmChip(tag.displayName)
-                }
-                if sub.progress > 0 {
-                    progressChip(sub.progress)
-                }
-            }
-
-            Spacer(minLength: 0)
-        }
     }
 }

@@ -73,7 +73,7 @@ public struct VibeBoardView: View {
     private var projectSidebar: some View {
         List(selection: $store.selectedProjectId) {
             ForEach(store.projects) { project in
-                ProjectRow(project: project, isSelected: store.selectedProjectId == project.id)
+                ProjectRow(project: project, isSelected: store.selectedProjectId == project.id, subProjectCount: store.subProjects(forProject: project.id).count)
                     .tag(project.id)
                     .contextMenu {
                         Button(role: .destructive) {
@@ -236,7 +236,7 @@ public struct VibeBoardView: View {
             case .subProjects:
                 if let selectedId = store.selectedSubProjectId,
                    let index = store.subProjects.firstIndex(where: { $0.id == selectedId }) {
-                    SubProjectRow(store: store, subProject: $store.subProjects[index])
+                    SubProjectRow(store: store, subProject: $store.subProjects[index], projectId: nil)
                         .padding(20)
                 } else {
                     ContentUnavailableView(

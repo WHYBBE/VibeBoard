@@ -33,8 +33,8 @@ public struct S {
         var addKeyword: String { S.isZh ? "添加关键词" : "Add keyword" }
         var add: String { S.isZh ? "添加" : "Add" }
         var languages: String { S.isZh ? "开发语言" : "Languages" }
-        var platformStatus: String { S.isZh ? "各平台实现情况" : "Platform Status" }
-        var addPlatform: String { S.isZh ? "添加平台" : "Add Platform" }
+        var platformStatus: String { S.isZh ? "子项目" : "Sub Projects" }
+        var addPlatform: String { S.isZh ? "为启用的平台创建子项目" : "Create for Enabled Platforms" }
         var repoName: String { S.isZh ? "仓库名" : "Repo Name" }
         var implemented: String { S.isZh ? "已实现" : "Done" }
         var platformCount: String { S.isZh ? "平台" : "platforms" }
@@ -65,6 +65,11 @@ public struct S {
         var deleteSubProjectConfirmMessage: String { S.isZh ? "将删除此子项目，不可恢复。确定继续？" : "This sub project will be deleted. This cannot be undone. Continue?" }
         var subProjectName: String { S.isZh ? "子项目名称" : "Sub Project Name" }
         var subProjectPlatforms: String { S.isZh ? "关联平台" : "Platforms" }
+        var shared: String { S.isZh ? "共享" : "Shared" }
+        var noSubProjects: String { S.isZh ? "暂无子项目" : "No Sub Projects" }
+        var addSubProjectHint: String { S.isZh ? "添加子项目或为平台自动创建" : "Add a sub project or create for platforms" }
+        var createForPlatforms: String { S.isZh ? "为平台创建" : "Create for Platforms" }
+        var platformOnly: String { S.isZh ? "平台专属" : "Platform Only" }
     }
 
     public static var settings: Settings { .init() }

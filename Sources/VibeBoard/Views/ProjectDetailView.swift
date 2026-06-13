@@ -47,13 +47,13 @@ struct ProjectDetailView: View {
             }
             Spacer()
 
-            let supported = project.platformStatuses.filter(\.isSupported).count
-            let total = project.platformStatuses.count
-            let subCount = project.subProjectIds.count
+            let boundSubs = store.subProjects.filter { project.subProjectIds.contains($0.id) }
+            let supported = boundSubs.filter(\.isSupported).count
+            let shared = boundSubs.filter(\.isShared).count
             HStack(spacing: 16) {
                 statBadge(value: "\(supported)", label: S.detail.supported, color: .green)
-                statBadge(value: "\(total - supported)", label: S.detail.notSupported, color: .orange)
-                statBadge(value: "\(subCount)", label: S.detail.subProjects, color: .orange)
+                statBadge(value: "\(boundSubs.count - supported)", label: S.detail.notSupported, color: .orange)
+                statBadge(value: "\(shared)", label: S.detail.shared, color: .blue)
             }
         }
     }
@@ -75,7 +75,7 @@ struct ProjectDetailView: View {
     private var previewContent: some View {
         VStack(alignment: .leading, spacing: 24) {
             previewKeywordsCard
-            previewUnifiedPlatformsCard
+            previewSubProjectsCard
         }
     }
 
@@ -107,35 +107,39 @@ struct ProjectDetailView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
-    private var previewUnifiedPlatformsCard: some View {
+    private var previewSubProjectsCard: some View {
         let boundSubs = store.subProjects.filter { project.subProjectIds.contains($0.id) }
+        let sharedSubs = boundSubs.filter(\.isShared)
+        let singleSubs = boundSubs.filter { !$0.isShared }
 
         return VStack(alignment: .leading, spacing: 14) {
-            Label(S.detail.platformStatus, systemImage: "arrow.triangle.branch")
+            Label(S.detail.platformStatus, systemImage: "cube.box")
                 .font(.title3.weight(.semibold))
 
-            if !boundSubs.isEmpty {
-                ForEach(boundSubs) { sub in
-                    previewSubProjectRow(sub)
-                }
-            }
+            if boundSubs.isEmpty {
+                Text(S.detail.noSubProjects)
+                    .font(.body)
+                    .foregroundStyle(.tertiary)
+            } else {
+                if !sharedSubs.isEmpty {
+                    Label(S.detail.shared, systemImage: "link")
+                        .font(.callout.weight(.medium))
+                        .foregroundStyle(.blue)
 
-            let supported = project.platformStatuses.filter(\.isSupported)
-            let unsupported = project.platformStatuses.filter { !$0.isSupported }
+                    ForEach(sharedSubs) { sub in
+                        previewSubProjectRow(sub)
+                    }
 
-            if !supported.isEmpty {
-                if !boundSubs.isEmpty { Divider().padding(.vertical, 4) }
-                ForEach(supported) { status in
-                    previewPlatformRow(status)
+                    if !singleSubs.isEmpty {
+                        Divider().padding(.vertical, 4)
+                    }
                 }
-            }
 
-            if !unsupported.isEmpty {
-                if !boundSubs.isEmpty || !supported.isEmpty { Divider().padding(.vertical, 4) }
-                ForEach(unsupported) { status in
-                    previewPlatformRow(status)
+                if !singleSubs.isEmpty {
+                    ForEach(singleSubs) { sub in
+                        previewSubProjectRow(sub)
+                    }
                 }
-                .opacity(0.5)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -146,133 +150,107 @@ struct ProjectDetailView: View {
 
     private func previewSubProjectRow(_ sub: SubProject) -> some View {
         HStack(alignment: .center, spacing: 14) {
-            Image(systemName: "cube.box")
-                .font(.title2)
-                .foregroundStyle(.orange)
-                .frame(width: 28)
-
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 8) {
-                    Text(sub.name)
-                        .font(.body.weight(.semibold))
-
-                    if !sub.repoName.isEmpty {
-                        HStack(spacing: 3) {
-                            Image(systemName: "folder")
-                                .font(.caption)
-                            Text(sub.repoName)
-                                .font(.callout)
-                        }
-                        .foregroundStyle(.secondary)
-                    }
-                }
-
-                HStack(spacing: 4) {
-                    ForEach(sub.platformIds, id: \.self) { pid in
-                        let p = store.platforms.first { $0.id == pid }
-                        Image(systemName: p?.icon ?? "questionmark.square")
-                            .font(.caption)
-                    }
-
-                    ForEach(sub.languages.filter { store.validLanguageIds.contains($0.id) }) { lang in
-                        Text(lang.displayName)
-                            .font(.callout)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 3)
-                            .background(.tint.opacity(0.12))
-                            .clipShape(Capsule())
-                    }
-
-                    ForEach(sub.llmTags.filter { store.validLLMTagIds.contains($0.id) }) { tag in
-                        Text(tag.displayName)
-                            .font(.callout)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 3)
-                            .background(Color.purple.opacity(0.12))
-                            .clipShape(Capsule())
-                    }
-                }
-            }
-
+            subProjectIcon(sub)
+            subProjectInfo(sub)
             Spacer()
-
-            if sub.progress > 0 {
-                VStack(spacing: 2) {
-                    ProgressView(value: sub.progress)
-                        .frame(width: 80)
-                    Text("\(Int(sub.progress * 100))%")
-                        .font(.caption.monospacedDigit())
-                        .foregroundStyle(.secondary)
-                }
+            if sub.isSupported, sub.progress > 0 {
+                subProjectProgress(sub)
             }
         }
         .padding(12)
-        .background(Color.orange.opacity(0.06))
+        .background(sub.isShared ? Color.blue.opacity(0.04) : (sub.isSupported ? Color.green.opacity(0.04) : Color.clear))
         .clipShape(RoundedRectangle(cornerRadius: 10))
-        .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color.orange.opacity(0.2), lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(
+            sub.isShared ? Color.blue.opacity(0.2) : (sub.isSupported ? Color.green.opacity(0.15) : Color.gray.opacity(0.2)),
+            lineWidth: 1
+        ))
     }
 
-    private func previewPlatformRow(_ status: PlatformStatus) -> some View {
-        let platform = store.platforms.first { $0.id == status.platformId }
+    private func subProjectIcon(_ sub: SubProject) -> some View {
+        Image(systemName: sub.isShared ? "link.circle.fill" : "cube.box")
+            .font(.title2)
+            .foregroundStyle(sub.isShared ? .blue : (sub.isSupported ? .green : .secondary))
+            .frame(width: 28)
+    }
 
-        return HStack(alignment: .center, spacing: 14) {
-            Image(systemName: platform?.icon ?? "questionmark.square")
-                .font(.title2)
-                .foregroundStyle(status.isSupported ? .green : .secondary)
-                .frame(width: 28)
-
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 8) {
-                    Text(platform?.displayName ?? status.platformId)
-                        .font(.body.weight(.semibold))
-
-                    if !status.repoName.isEmpty {
-                        HStack(spacing: 3) {
-                            Image(systemName: "folder")
-                                .font(.caption)
-                            Text(status.repoName)
-                                .font(.callout)
-                        }
-                        .foregroundStyle(.secondary)
+    @ViewBuilder
+    private func subProjectInfo(_ sub: SubProject) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 8) {
+                Text(sub.name.isEmpty ? S.detail.subProjectName : sub.name)
+                    .font(.body.weight(.semibold))
+                if !sub.repoName.isEmpty {
+                    HStack(spacing: 3) {
+                        Image(systemName: "folder").font(.caption)
+                        Text(sub.repoName).font(.callout)
                     }
-                }
-
-                if !status.languages.isEmpty || !status.llmTags.filter({ store.validLLMTagIds.contains($0.id) }).isEmpty {
-                    HStack(spacing: 6) {
-                        ForEach(status.languages.filter { store.validLanguageIds.contains($0.id) }) { lang in
-                            Text(lang.displayName)
-                                .font(.callout)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 3)
-                                .background(.tint.opacity(0.12))
-                                .clipShape(Capsule())
-                        }
-
-                        ForEach(status.llmTags.filter { store.validLLMTagIds.contains($0.id) }) { tag in
-                            Text(tag.displayName)
-                                .font(.callout)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 3)
-                                .background(Color.purple.opacity(0.12))
-                                .clipShape(Capsule())
-                        }
-                    }
+                    .foregroundStyle(.secondary)
                 }
             }
-
-            Spacer()
-
-            if status.isSupported, status.progress > 0 {
-                VStack(spacing: 2) {
-                    ProgressView(value: status.progress)
-                        .frame(width: 80)
-                    Text("\(Int(status.progress * 100))%")
-                        .font(.caption.monospacedDigit())
-                        .foregroundStyle(.secondary)
-                }
+            HStack(spacing: 4) {
+                subProjectPlatformTags(sub)
+                subProjectLanguageTags(sub)
+                subProjectLLMTags(sub)
             }
         }
-        .padding(.vertical, 6)
+    }
+
+    @ViewBuilder
+    private func subProjectPlatformTags(_ sub: SubProject) -> some View {
+        ForEach(sub.platformIds, id: \.self) { pid in
+            let p = store.platforms.first { $0.id == pid }
+            HStack(spacing: 3) {
+                Image(systemName: p?.icon ?? "questionmark.square").font(.caption)
+                if sub.isShared {
+                    Text(p?.displayName ?? pid).font(.caption2)
+                }
+            }
+            .padding(.horizontal, sub.isShared ? 6 : 4)
+            .padding(.vertical, 2)
+            .background(sub.isShared ? Color.blue.opacity(0.12) : Color.clear)
+            .clipShape(Capsule())
+        }
+        if sub.platformIds.isEmpty {
+            Text(S.detail.platformOnly)
+                .font(.caption2)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(Color.gray.opacity(0.1))
+                .clipShape(Capsule())
+        }
+    }
+
+    @ViewBuilder
+    private func subProjectLanguageTags(_ sub: SubProject) -> some View {
+        ForEach(sub.languages.filter { store.validLanguageIds.contains($0.id) }) { lang in
+            Text(lang.displayName)
+                .font(.callout)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3)
+                .background(.tint.opacity(0.12))
+                .clipShape(Capsule())
+        }
+    }
+
+    @ViewBuilder
+    private func subProjectLLMTags(_ sub: SubProject) -> some View {
+        ForEach(sub.llmTags.filter { store.validLLMTagIds.contains($0.id) }) { tag in
+            Text(tag.displayName)
+                .font(.callout)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3)
+                .background(Color.purple.opacity(0.12))
+                .clipShape(Capsule())
+        }
+    }
+
+    private func subProjectProgress(_ sub: SubProject) -> some View {
+        VStack(spacing: 2) {
+            ProgressView(value: sub.progress).frame(width: 80)
+            Text("\(Int(sub.progress * 100))%")
+                .font(.caption.monospacedDigit())
+                .foregroundStyle(.secondary)
+        }
     }
 
     // MARK: - Edit
@@ -281,7 +259,6 @@ struct ProjectDetailView: View {
         VStack(alignment: .leading, spacing: 16) {
             editKeywordsCard
             editSubProjectsCard
-            editPlatformsCard
         }
     }
 
@@ -318,22 +295,38 @@ struct ProjectDetailView: View {
 
         return VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Label(S.detail.subProjects, systemImage: "cube.box")
+                Label(S.detail.platformStatus, systemImage: "cube.box")
                     .font(.headline)
 
                 Spacer()
 
                 Menu {
+                    Button(S.detail.newSubProject) {
+                        let sub = SubProject(name: "")
+                        store.addSubProjectToProject(sub, projectId: project.id)
+                    }
+
+                    Button(S.detail.createForPlatforms) {
+                        for platform in store.enabledPlatforms {
+                            let existing = boundSubs.first { $0.platformIds == [platform.id] }
+                            if existing == nil {
+                                let sub = SubProject(
+                                    name: platform.displayName,
+                                    platformIds: [platform.id],
+                                    isSupported: true,
+                                    repoName: "app-\(platform.id.lowercased())"
+                                )
+                                store.addSubProjectToProject(sub, projectId: project.id)
+                            }
+                        }
+                    }
+
+                    Divider()
+
                     ForEach(store.unboundSubProjects) { sub in
                         Button(sub.name) {
                             store.bindSubProject(sub.id, toProject: project.id)
                         }
-                    }
-                    Divider()
-                    Button(S.detail.newSubProject) {
-                        let sub = SubProject(name: "")
-                        store.addSubProject(sub)
-                        store.bindSubProject(sub.id, toProject: project.id)
                     }
                 } label: {
                     Label(S.detail.addSubProject, systemImage: "plus.circle")
@@ -341,114 +334,15 @@ struct ProjectDetailView: View {
             }
 
             if boundSubs.isEmpty {
-                Text(S.detail.addSubProject)
+                Text(S.detail.addSubProjectHint)
                     .font(.subheadline)
                     .foregroundStyle(.tertiary)
             } else {
                 ForEach(boundSubs) { sub in
-                    editSubProjectRow(sub)
-                }
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
-        .background(.background.secondary)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-    }
-
-    private func editSubProjectRow(_ sub: SubProject) -> some View {
-        HStack(spacing: 10) {
-            Image(systemName: "cube.box")
-                .font(.title3)
-                .foregroundStyle(.orange)
-                .frame(width: 24)
-
-            VStack(alignment: .leading, spacing: 6) {
-                Text(sub.name.isEmpty ? S.detail.subProjectName : sub.name)
-                    .font(.headline)
-
-                HStack(spacing: 4) {
-                    ForEach(sub.platformIds, id: \.self) { pid in
-                        let p = store.platforms.first { $0.id == pid }
-                        Image(systemName: p?.icon ?? "questionmark.square")
-                            .font(.caption)
-                    }
-
-                    ForEach(sub.languages) { lang in
-                        Text(lang.displayName)
-                            .font(.caption2)
-                            .padding(.horizontal, 5)
-                            .padding(.vertical, 1)
-                            .background(.tint.opacity(0.12))
-                            .clipShape(Capsule())
-                    }
-
-                    ForEach(sub.llmTags.filter { store.validLLMTagIds.contains($0.id) }) { tag in
-                        Text(tag.displayName)
-                            .font(.caption2)
-                            .padding(.horizontal, 5)
-                            .padding(.vertical, 1)
-                            .background(Color.purple.opacity(0.12))
-                            .clipShape(Capsule())
-                    }
-
-                    if !sub.repoName.isEmpty {
-                        HStack(spacing: 2) {
-                            Image(systemName: "folder")
-                                .font(.caption2)
-                            Text(sub.repoName)
-                                .font(.caption2)
-                        }
-                        .foregroundStyle(.secondary)
-                    }
-
-                    if sub.progress > 0 {
-                        Text("\(Int(sub.progress * 100))%")
-                            .font(.caption2.monospacedDigit())
-                            .foregroundStyle(.secondary)
+                    if let index = store.subProjects.firstIndex(where: { $0.id == sub.id }) {
+                        SubProjectRow(store: store, subProject: $store.subProjects[index], projectId: project.id)
                     }
                 }
-            }
-
-            Spacer()
-
-            Button(S.detail.unbind) {
-                store.unbindSubProject(sub.id, fromProject: project.id)
-            }
-            .controlSize(.small)
-        }
-        .padding(10)
-        .background(Color.orange.opacity(0.05))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color.orange.opacity(0.3), lineWidth: 0.5))
-    }
-
-    private var editPlatformsCard: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Label(S.detail.platformStatus, systemImage: "arrow.triangle.branch")
-                    .font(.headline)
-
-                Spacer()
-
-                Menu {
-                    ForEach(store.platforms.filter { p in
-                        !project.platformStatuses.contains(where: { $0.platformId == p.id })
-                    }) { platform in
-                        Button(platform.displayName) {
-                            store.addPlatformStatusToProject(platform, projectId: project.id)
-                        }
-                    }
-                } label: {
-                    Label(S.detail.addPlatform, systemImage: "plus.circle")
-                }
-                .disabled(store.platforms.filter { p in
-                    !project.platformStatuses.contains(where: { $0.platformId == p.id })
-                }.isEmpty)
-            }
-
-            ForEach($project.platformStatuses) { $status in
-                PlatformStatusRow(store: store, status: $status, projectId: project.id)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

@@ -3,6 +3,13 @@ import SwiftUI
 struct ProjectRow: View {
     let project: VibeProject
     let isSelected: Bool
+    let subProjectCount: Int
+
+    init(project: VibeProject, isSelected: Bool, subProjectCount: Int = 0) {
+        self.project = project
+        self.isSelected = isSelected
+        self.subProjectCount = subProjectCount
+    }
 
     var body: some View {
         HStack {
@@ -10,23 +17,9 @@ struct ProjectRow: View {
                 Text(project.name)
                     .font(.headline)
                 HStack(spacing: 4) {
-                    let supported = project.platformStatuses.filter(\.isSupported).count
-                    let total = project.platformStatuses.count
-                    Text("\(supported)/\(total) \(S.detail.platformCount)")
+                    Text("\(subProjectCount) \(S.detail.subProjects)")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
-
-                    let allLangs = Array(Set(project.platformStatuses.flatMap(\.languages).map(\.displayName))).sorted()
-                    if !allLangs.isEmpty {
-                        ForEach(allLangs, id: \.self) { name in
-                            Text(name)
-                                .font(.caption2)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(.tint.opacity(0.15))
-                                .clipShape(Capsule())
-                        }
-                    }
                 }
             }
 
