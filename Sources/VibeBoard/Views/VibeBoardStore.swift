@@ -5,11 +5,13 @@ import Combine
 public final class VibeBoardStore: ObservableObject {
     @Published public var projects: [VibeProject] = []
     @Published public var selectedProjectId: UUID?
+    @Published public var selectedSubProjectId: UUID?
     @Published public var platforms: [Platform] = Platform.builtInAll
     @Published public var languages: [Language] = Language.builtInAll
     @Published public var llmTags: [LLMTag] = LLMTag.builtInAll
-    @Published public var appLanguage: AppLanguage = AppLanguage(rawValue: UserDefaults.standard.string(forKey: "VB_appLanguage") ?? "") ?? .zh
-    @Published public var appTheme: AppTheme = AppTheme(rawValue: UserDefaults.standard.string(forKey: "VB_appTheme") ?? "") ?? .system
+    @Published public var appLanguage: AppLanguage = .zh
+    @Published public var appTheme: AppTheme = .system
+    @Published public var subProjects: [SubProject] = []
 
     private let saveURL: URL
     private var saveCancellable: AnyCancellable?
@@ -26,39 +28,10 @@ public final class VibeBoardStore: ObservableObject {
             self.selectedProjectId = decoded.selectedProjectId
             self.platforms = decoded.platforms
             self.languages = decoded.languages
-            self.llmTags = decoded.llmTags ?? []
-            self.appLanguage = decoded.appLanguage ?? .zh
-            self.appTheme = decoded.appTheme ?? .system
-
-            let existingPlatformIds = Set(self.platforms.map(\.id))
-            for p in Platform.builtInAll where !existingPlatformIds.contains(p.id) {
-                self.platforms.append(p)
-            }
-
-            let validIds = Set(self.llmTags.map(\.id))
-            let validLangIds = Set(self.languages.map(\.id))
-            for i in self.projects.indices {
-                for j in self.projects[i].platformStatuses.indices {
-                    var seen = Set<String>()
-                    self.projects[i].platformStatuses[j].llmTags = self.projects[i].platformStatuses[j].llmTags.filter {
-                        validIds.contains($0.id) && seen.insert($0.id).inserted
-                    }
-                    var seenLang = Set<String>()
-                    self.projects[i].platformStatuses[j].languages = self.projects[i].platformStatuses[j].languages.filter {
-                        validLangIds.contains($0.id) && seenLang.insert($0.id).inserted
-                    }
-                }
-                for j in self.projects[i].sharedGroups.indices {
-                    var seen = Set<String>()
-                    self.projects[i].sharedGroups[j].llmTags = self.projects[i].sharedGroups[j].llmTags.filter {
-                        validIds.contains($0.id) && seen.insert($0.id).inserted
-                    }
-                    var seenLang = Set<String>()
-                    self.projects[i].sharedGroups[j].languages = self.projects[i].sharedGroups[j].languages.filter {
-                        validLangIds.contains($0.id) && seenLang.insert($0.id).inserted
-                    }
-                }
-            }
+            self.llmTags = decoded.llmTags
+            self.subProjects = decoded.subProjects
+            self.appLanguage = decoded.appLanguage
+            self.appTheme = decoded.appTheme
         } else {
             self.platforms = Platform.builtInAll
             self.languages = Language.builtInAll
@@ -94,6 +67,7 @@ public final class VibeBoardStore: ObservableObject {
             platforms: platforms,
             languages: languages,
             llmTags: llmTags,
+            subProjects: subProjects,
             appLanguage: appLanguage,
             appTheme: appTheme
         )
@@ -190,45 +164,72 @@ public final class VibeBoardStore: ObservableObject {
         }
     }
 
-    public func toggleLLMTagInSharedGroup(_ tag: LLMTag, groupId: UUID, projectId: UUID) {
-        guard let index = projects.firstIndex(where: { $0.id == projectId }) else { return }
-        if let gIndex = projects[index].sharedGroups.firstIndex(where: { $0.id == groupId }) {
-            if let tIndex = projects[index].sharedGroups[gIndex].llmTags.firstIndex(of: tag) {
-                projects[index].sharedGroups[gIndex].llmTags.remove(at: tIndex)
-            } else {
-                projects[index].sharedGroups[gIndex].llmTags.append(tag)
-            }
+    // MARK: - SubProject CRUD
+
+    public func addSubProject(_ sub: SubProject) {
+        subProjects.append(sub)
+    }
+
+    public func deleteSubProject(_ id: UUID) {
+        subProjects.removeAll { $0.id == id }
+        for i in projects.indices {
+            projects[i].subProjectIds.removeAll { $0 == id }
         }
     }
 
-    // MARK: - Shared Groups
-
-    public func addSharedGroup(_ group: SharedGroup, projectId: UUID) {
-        guard let index = projects.firstIndex(where: { $0.id == projectId }) else { return }
-        projects[index].sharedGroups.append(group)
-    }
-
-    public func removeSharedGroup(_ groupId: UUID, projectId: UUID) {
-        guard let index = projects.firstIndex(where: { $0.id == projectId }) else { return }
-        projects[index].sharedGroups.removeAll { $0.id == groupId }
-    }
-
-    public func updateSharedGroup(_ group: SharedGroup, projectId: UUID) {
-        guard let index = projects.firstIndex(where: { $0.id == projectId }) else { return }
-        if let gIndex = projects[index].sharedGroups.firstIndex(where: { $0.id == group.id }) {
-            projects[index].sharedGroups[gIndex] = group
+    public func updateSubProject(_ sub: SubProject) {
+        if let index = subProjects.firstIndex(where: { $0.id == sub.id }) {
+            subProjects[index] = sub
         }
     }
 
-    public func toggleLanguageInSharedGroup(_ language: Language, groupId: UUID, projectId: UUID) {
-        guard let index = projects.firstIndex(where: { $0.id == projectId }) else { return }
-        if let gIndex = projects[index].sharedGroups.firstIndex(where: { $0.id == groupId }) {
-            if let lIndex = projects[index].sharedGroups[gIndex].languages.firstIndex(of: language) {
-                projects[index].sharedGroups[gIndex].languages.remove(at: lIndex)
-            } else {
-                projects[index].sharedGroups[gIndex].languages.append(language)
-            }
+    public func toggleLanguageInSubProject(_ language: Language, subProjectId: UUID) {
+        guard let index = subProjects.firstIndex(where: { $0.id == subProjectId }) else { return }
+        if let lIndex = subProjects[index].languages.firstIndex(of: language) {
+            subProjects[index].languages.remove(at: lIndex)
+        } else {
+            subProjects[index].languages.append(language)
         }
+    }
+
+    public func toggleLLMTagInSubProject(_ tag: LLMTag, subProjectId: UUID) {
+        guard let index = subProjects.firstIndex(where: { $0.id == subProjectId }) else { return }
+        if let tIndex = subProjects[index].llmTags.firstIndex(of: tag) {
+            subProjects[index].llmTags.remove(at: tIndex)
+        } else {
+            subProjects[index].llmTags.append(tag)
+        }
+    }
+
+    public func togglePlatformInSubProject(_ platformId: String, subProjectId: UUID) {
+        guard let index = subProjects.firstIndex(where: { $0.id == subProjectId }) else { return }
+        if let pIndex = subProjects[index].platformIds.firstIndex(of: platformId) {
+            subProjects[index].platformIds.remove(at: pIndex)
+        } else {
+            subProjects[index].platformIds.append(platformId)
+        }
+    }
+
+    public func bindSubProject(_ subProjectId: UUID, toProject projectId: UUID) {
+        guard let index = projects.firstIndex(where: { $0.id == projectId }) else { return }
+        if !projects[index].subProjectIds.contains(subProjectId) {
+            projects[index].subProjectIds.append(subProjectId)
+        }
+    }
+
+    public func unbindSubProject(_ subProjectId: UUID, fromProject projectId: UUID) {
+        guard let index = projects.firstIndex(where: { $0.id == projectId }) else { return }
+        projects[index].subProjectIds.removeAll { $0 == subProjectId }
+    }
+
+    public func subProjects(forProject projectId: UUID) -> [SubProject] {
+        guard let project = projects.first(where: { $0.id == projectId }) else { return [] }
+        return subProjects.filter { project.subProjectIds.contains($0.id) }
+    }
+
+    public var unboundSubProjects: [SubProject] {
+        let boundIds = Set(projects.flatMap(\.subProjectIds))
+        return subProjects.filter { !boundIds.contains($0.id) }
     }
 
     // MARK: - Project Keywords
@@ -292,6 +293,9 @@ public final class VibeBoardStore: ObservableObject {
                 projects[index].platformStatuses[pIndex].languages.removeAll { $0.id == id }
             }
         }
+        for i in subProjects.indices {
+            subProjects[i].languages.removeAll { $0.id == id }
+        }
     }
 
     public func updateLanguage(_ language: Language) {
@@ -314,9 +318,9 @@ public final class VibeBoardStore: ObservableObject {
             for pIndex in projects[index].platformStatuses.indices {
                 projects[index].platformStatuses[pIndex].llmTags.removeAll { $0.id == id }
             }
-            for gIndex in projects[index].sharedGroups.indices {
-                projects[index].sharedGroups[gIndex].llmTags.removeAll { $0.id == id }
-            }
+        }
+        for i in subProjects.indices {
+            subProjects[i].llmTags.removeAll { $0.id == id }
         }
     }
 
@@ -335,6 +339,7 @@ public final class VibeBoardStore: ObservableObject {
             platforms: platforms,
             languages: languages,
             llmTags: llmTags,
+            subProjects: subProjects,
             appLanguage: appLanguage,
             appTheme: appTheme
         )
@@ -349,23 +354,11 @@ public final class VibeBoardStore: ObservableObject {
         selectedProjectId = decoded.selectedProjectId
         platforms = decoded.platforms
         languages = decoded.languages
-        llmTags = decoded.llmTags ?? []
-        appLanguage = decoded.appLanguage ?? .zh
-        appTheme = decoded.appTheme ?? .system
+        llmTags = decoded.llmTags
+        subProjects = decoded.subProjects
+        appLanguage = decoded.appLanguage
+        appTheme = decoded.appTheme
         S.lang = appLanguage
-
-        let existingPlatformIds = Set(platforms.map(\.id))
-        for p in Platform.builtInAll where !existingPlatformIds.contains(p.id) {
-            platforms.append(p)
-        }
-        let existingLanguageIds = Set(languages.map(\.id))
-        for l in Language.builtInAll where !existingLanguageIds.contains(l.id) {
-            languages.append(l)
-        }
-        let existingLLMTagIds = Set(llmTags.map(\.id))
-        for t in LLMTag.builtInAll where !existingLLMTagIds.contains(t.id) {
-            llmTags.append(t)
-        }
         return true
     }
 
@@ -375,6 +368,7 @@ public final class VibeBoardStore: ObservableObject {
         platforms = Platform.builtInAll
         languages = Language.builtInAll
         llmTags = LLMTag.builtInAll
+        subProjects = []
     }
 }
 
@@ -383,7 +377,8 @@ private struct StoreSnapshot: Codable {
     var selectedProjectId: UUID?
     var platforms: [Platform]
     var languages: [Language]
-    var llmTags: [LLMTag]?
-    var appLanguage: AppLanguage?
-    var appTheme: AppTheme?
+    var llmTags: [LLMTag]
+    var subProjects: [SubProject]
+    var appLanguage: AppLanguage
+    var appTheme: AppTheme
 }

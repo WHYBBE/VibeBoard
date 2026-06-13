@@ -5,23 +5,22 @@ public struct VibeProject: Identifiable, Codable, Equatable {
     public var name: String
     public var keywords: [String]
     public var platformStatuses: [PlatformStatus]
-    public var sharedGroups: [SharedGroup]
+    public var subProjectIds: [UUID]
     public var createdAt: Date
 
     public init(
         id: UUID = UUID(),
         name: String,
         keywords: [String] = [],
-        platformStatuses: [PlatformStatus]? = nil,
-        platforms: [Platform]? = nil,
-        sharedGroups: [SharedGroup] = [],
+        platformStatuses: [PlatformStatus] = [],
+        subProjectIds: [UUID] = [],
         createdAt: Date = Date()
     ) {
         self.id = id
         self.name = name
         self.keywords = keywords
-        self.platformStatuses = platformStatuses ?? (platforms ?? Platform.builtInAll).map { PlatformStatus(platform: $0, isSupported: $0.isEnabled) }
-        self.sharedGroups = sharedGroups
+        self.platformStatuses = platformStatuses
+        self.subProjectIds = subProjectIds
         self.createdAt = createdAt
     }
 

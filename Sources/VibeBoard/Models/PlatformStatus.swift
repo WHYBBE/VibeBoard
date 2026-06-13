@@ -1,6 +1,6 @@
 import Foundation
 
-public struct PlatformStatus: Identifiable, Equatable {
+public struct PlatformStatus: Identifiable, Equatable, Codable {
     public var id: String { platformId }
 
     public var platformId: String
@@ -33,31 +33,5 @@ public struct PlatformStatus: Identifiable, Equatable {
         self.progress = progress
         self.languages = languages
         self.llmTags = llmTags
-    }
-}
-
-extension PlatformStatus: Codable {
-    private enum CodingKeys: String, CodingKey {
-        case platformId, isSupported, repoName, progress, languages, llmTags
-    }
-
-    public init(from decoder: Decoder) throws {
-        let c = try decoder.container(keyedBy: CodingKeys.self)
-        platformId = try c.decode(String.self, forKey: .platformId)
-        isSupported = try c.decode(Bool.self, forKey: .isSupported)
-        repoName = try c.decode(String.self, forKey: .repoName)
-        progress = try c.decode(Double.self, forKey: .progress)
-        languages = (try? c.decode([Language].self, forKey: .languages)) ?? []
-        llmTags = (try? c.decode([LLMTag].self, forKey: .llmTags)) ?? []
-    }
-
-    public func encode(to encoder: Encoder) throws {
-        var c = encoder.container(keyedBy: CodingKeys.self)
-        try c.encode(platformId, forKey: .platformId)
-        try c.encode(isSupported, forKey: .isSupported)
-        try c.encode(repoName, forKey: .repoName)
-        try c.encode(progress, forKey: .progress)
-        try c.encode(languages, forKey: .languages)
-        try c.encode(llmTags, forKey: .llmTags)
     }
 }

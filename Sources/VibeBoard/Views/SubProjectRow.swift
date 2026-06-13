@@ -1,24 +1,26 @@
 import SwiftUI
 
-struct SharedGroupRow: View {
+struct SubProjectRow: View {
     @ObservedObject var store: VibeBoardStore
-    @Binding var group: SharedGroup
-    var projectId: UUID
+    @Binding var subProject: SubProject
     @State private var showDeleteConfirm = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 10) {
-                Image(systemName: "square.on.square")
+                Image(systemName: "cube.box")
                     .font(.title3)
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(.orange)
                     .frame(width: 24)
 
-                TextField(S.detail.sharedGroupName, text: $group.name)
+                TextField(S.detail.subProjectName, text: $subProject.name)
                     .textFieldStyle(.roundedBorder)
                     .frame(maxWidth: 200)
 
                 Spacer()
+
+                Toggle(S.detail.implemented, isOn: $subProject.isSupported)
+                    .toggleStyle(.switch)
 
                 Button(role: .destructive) {
                     showDeleteConfirm = true
@@ -27,39 +29,22 @@ struct SharedGroupRow: View {
                         .font(.caption)
                 }
                 .buttonStyle(.borderless)
-                .alert(S.detail.deleteGroupConfirmTitle, isPresented: $showDeleteConfirm) {
-                    Button(S.detail.deleteGroup, role: .destructive) {
-                        store.removeSharedGroup(group.id, projectId: projectId)
+                .alert(S.detail.deleteSubProjectConfirmTitle, isPresented: $showDeleteConfirm) {
+                    Button(S.detail.deleteSubProjectConfirmTitle, role: .destructive) {
+                        store.deleteSubProject(subProject.id)
                     }
                     Button(S.sidebar.cancel, role: .cancel) {}
                 } message: {
-                    Text(S.detail.deleteGroupConfirmMessage)
+                    Text(S.detail.deleteSubProjectConfirmMessage)
                 }
             }
 
             HStack(spacing: 12) {
-                Label(S.detail.sharedGroupPlatforms, systemImage: "desktopcomputer")
+                Label(S.detail.repoName, systemImage: "folder")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .frame(width: 60, alignment: .trailing)
-
-                FlowLayout(spacing: 6) {
-                    ForEach(store.platforms) { platform in
-                        PlatformToggleTag(
-                            platform: platform,
-                            isSelected: group.platformIds.contains(platform.id),
-                            onToggle: { togglePlatform(platform.id) }
-                        )
-                    }
-                }
-            }
-
-            HStack(spacing: 12) {
-                Label(S.detail.sharedGroupRepo, systemImage: "folder")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .frame(width: 60, alignment: .trailing)
-                TextField(S.detail.repoName, text: $group.repoName)
+                TextField(S.detail.repoName, text: $subProject.repoName)
                     .textFieldStyle(.roundedBorder)
                     .frame(maxWidth: 200)
             }
@@ -69,11 +54,31 @@ struct SharedGroupRow: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .frame(width: 60, alignment: .trailing)
-                Slider(value: $group.progress, in: 0...1)
+                Slider(value: $subProject.progress, in: 0...1)
                     .frame(maxWidth: 200)
-                Text("\(Int(group.progress * 100))%")
+                Text("\(Int(subProject.progress * 100))%")
                     .font(.caption.monospacedDigit())
                     .frame(width: 40)
+            }
+
+            if !store.platforms.isEmpty {
+                HStack(alignment: .top, spacing: 12) {
+                    Label(S.detail.subProjectPlatforms, systemImage: "desktopcomputer")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .frame(width: 60, alignment: .trailing)
+                        .padding(.top, 2)
+
+                    FlowLayout(spacing: 6) {
+                        ForEach(store.platforms) { platform in
+                            PlatformToggleTag(
+                                platform: platform,
+                                isSelected: subProject.platformIds.contains(platform.id),
+                                onToggle: { store.togglePlatformInSubProject(platform.id, subProjectId: subProject.id) }
+                            )
+                        }
+                    }
+                }
             }
 
             if !store.languages.isEmpty {
@@ -88,8 +93,8 @@ struct SharedGroupRow: View {
                         ForEach(store.languages) { language in
                             LanguageToggleTag(
                                 language: language,
-                                isSelected: group.languages.contains(language),
-                                onToggle: { store.toggleLanguageInSharedGroup(language, groupId: group.id, projectId: projectId) }
+                                isSelected: subProject.languages.contains(language),
+                                onToggle: { store.toggleLanguageInSubProject(language, subProjectId: subProject.id) }
                             )
                         }
                     }
@@ -108,8 +113,8 @@ struct SharedGroupRow: View {
                         ForEach(store.llmTags) { tag in
                             LLMTagToggleTag(
                                 tag: tag,
-                                isSelected: group.llmTags.contains(tag),
-                                onToggle: { store.toggleLLMTagInSharedGroup(tag, groupId: group.id, projectId: projectId) }
+                                isSelected: subProject.llmTags.contains(tag),
+                                onToggle: { store.toggleLLMTagInSubProject(tag, subProjectId: subProject.id) }
                             )
                         }
                     }
@@ -117,17 +122,9 @@ struct SharedGroupRow: View {
             }
         }
         .padding(10)
-        .background(Color.blue.opacity(0.05))
+        .background(Color.orange.opacity(0.05))
         .clipShape(RoundedRectangle(cornerRadius: 8))
-        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color.blue.opacity(0.3), lineWidth: 0.5))
-    }
-
-    private func togglePlatform(_ platformId: String) {
-        if let index = group.platformIds.firstIndex(of: platformId) {
-            group.platformIds.remove(at: index)
-        } else {
-            group.platformIds.append(platformId)
-        }
+        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color.orange.opacity(0.3), lineWidth: 0.5))
     }
 }
 

@@ -20,6 +20,7 @@ public struct S {
         var groupByPlatform: String { S.isZh ? "按平台分组" : "Group by Platform" }
         var groupByLanguage: String { S.isZh ? "按语言分组" : "Group by Language" }
         var groupByNone: String { S.isZh ? "不分组" : "No Grouping" }
+        var subProjects: String { S.isZh ? "子项目" : "Sub Projects" }
     }
 
     public static var detail: Detail { .init() }
@@ -55,6 +56,15 @@ public struct S {
         var deletePlatformConfirmMessage: String { S.isZh ? "将从项目中移除此平台，不可恢复。确定继续？" : "This platform will be removed from the project. This cannot be undone. Continue?" }
         var llmTags: String { S.isZh ? "AI 模型" : "AI Models" }
         var addLLMTag: String { S.isZh ? "添加 AI 模型" : "Add AI Model" }
+        var subProjects: String { S.isZh ? "子项目" : "Sub Projects" }
+        var addSubProject: String { S.isZh ? "添加子项目" : "Add Sub Project" }
+        var newSubProject: String { S.isZh ? "新建子项目" : "New Sub Project" }
+        var bindSubProject: String { S.isZh ? "绑定子项目" : "Bind Sub Project" }
+        var unbind: String { S.isZh ? "解绑" : "Unbind" }
+        var deleteSubProjectConfirmTitle: String { S.isZh ? "确认删除子项目" : "Delete Sub Project" }
+        var deleteSubProjectConfirmMessage: String { S.isZh ? "将删除此子项目，不可恢复。确定继续？" : "This sub project will be deleted. This cannot be undone. Continue?" }
+        var subProjectName: String { S.isZh ? "子项目名称" : "Sub Project Name" }
+        var subProjectPlatforms: String { S.isZh ? "关联平台" : "Platforms" }
     }
 
     public static var settings: Settings { .init() }

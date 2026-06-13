@@ -44,17 +44,17 @@ struct OverviewView: View {
                 }
             }
 
-            let sharedPlatformIds = Set(project.sharedGroups.flatMap(\.platformIds))
+            let boundSubs = store.subProjects.filter { sub in project.subProjectIds.contains(sub.id) }
 
-            if !project.sharedGroups.isEmpty || !project.platformStatuses.isEmpty {
+            if !boundSubs.isEmpty || !project.platformStatuses.isEmpty {
                 Divider()
 
                 VStack(spacing: 10) {
-                    ForEach(project.sharedGroups) { group in
-                        sharedGroupRow(group)
+                    ForEach(boundSubs) { sub in
+                        subProjectRow(sub)
                     }
 
-                    ForEach(project.platformStatuses.filter { !sharedPlatformIds.contains($0.platformId) }) { status in
+                    ForEach(project.platformStatuses) { status in
                         platformRow(status)
                     }
                 }
@@ -66,51 +66,6 @@ struct OverviewView: View {
         .clipShape(RoundedRectangle(cornerRadius: 14))
         .shadow(color: .black.opacity(0.08), radius: 6, y: 3)
         .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Color.gray.opacity(0.12), lineWidth: 0.5))
-    }
-
-    private func sharedGroupRow(_ group: SharedGroup) -> some View {
-        HStack(spacing: 10) {
-            HStack(spacing: 5) {
-                Image(systemName: "square.on.square")
-                    .font(.body.weight(.semibold))
-                    .foregroundStyle(.blue)
-
-                ForEach(Array(group.platformIds.enumerated()), id: \.offset) { i, pid in
-                    let p = store.platforms.first { $0.id == pid }
-                    if i > 0 {
-                        Text("+")
-                            .font(.callout.weight(.bold))
-                            .foregroundStyle(.tertiary)
-                    }
-                    Image(systemName: p?.icon ?? "questionmark.square")
-                        .font(.body)
-                }
-
-                if !group.name.isEmpty {
-                    Text(group.name)
-                        .font(.callout.weight(.medium))
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(Color.blue.opacity(0.1))
-            .clipShape(Capsule())
-
-            FlowLayout(spacing: 5) {
-                ForEach(group.languages) { lang in
-                    langChip(lang.displayName)
-                }
-                ForEach(group.llmTags.filter { store.validLLMTagIds.contains($0.id) }) { tag in
-                    llmChip(tag.displayName)
-                }
-                if group.progress > 0 {
-                    progressChip(group.progress)
-                }
-            }
-
-            Spacer(minLength: 0)
-        }
     }
 
     private func platformRow(_ status: PlatformStatus) -> some View {
@@ -172,5 +127,44 @@ struct OverviewView: View {
             .foregroundStyle(progress >= 1 ? .green : .secondary)
             .background(progress >= 1 ? Color.green.opacity(0.12) : Color.gray.opacity(0.08))
             .clipShape(Capsule())
+    }
+
+    private func subProjectRow(_ sub: SubProject) -> some View {
+        HStack(spacing: 10) {
+            HStack(spacing: 5) {
+                Image(systemName: "cube.box")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(.orange)
+
+                Text(sub.name)
+                    .font(.callout.weight(.medium))
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(Color.orange.opacity(0.1))
+            .clipShape(Capsule())
+
+            HStack(spacing: 1) {
+                ForEach(sub.platformIds, id: \.self) { pid in
+                    let p = store.platforms.first { $0.id == pid }
+                    Image(systemName: p?.icon ?? "questionmark.square")
+                        .font(.caption)
+                }
+            }
+
+            FlowLayout(spacing: 5) {
+                ForEach(sub.languages) { lang in
+                    langChip(lang.displayName)
+                }
+                ForEach(sub.llmTags.filter { store.validLLMTagIds.contains($0.id) }) { tag in
+                    llmChip(tag.displayName)
+                }
+                if sub.progress > 0 {
+                    progressChip(sub.progress)
+                }
+            }
+
+            Spacer(minLength: 0)
+        }
     }
 }

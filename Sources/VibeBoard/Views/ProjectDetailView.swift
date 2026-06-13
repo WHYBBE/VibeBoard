@@ -49,10 +49,11 @@ struct ProjectDetailView: View {
 
             let supported = project.platformStatuses.filter(\.isSupported).count
             let total = project.platformStatuses.count
+            let subCount = project.subProjectIds.count
             HStack(spacing: 16) {
                 statBadge(value: "\(supported)", label: S.detail.supported, color: .green)
                 statBadge(value: "\(total - supported)", label: S.detail.notSupported, color: .orange)
-                statBadge(value: "\(project.sharedGroups.count)", label: S.detail.sharedGroups, color: .blue)
+                statBadge(value: "\(subCount)", label: S.detail.subProjects, color: .orange)
             }
         }
     }
@@ -107,35 +108,31 @@ struct ProjectDetailView: View {
     }
 
     private var previewUnifiedPlatformsCard: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        let boundSubs = store.subProjects.filter { project.subProjectIds.contains($0.id) }
+
+        return VStack(alignment: .leading, spacing: 14) {
             Label(S.detail.platformStatus, systemImage: "arrow.triangle.branch")
                 .font(.title3.weight(.semibold))
 
-            let sharedPlatformIds = Set(project.sharedGroups.flatMap(\.platformIds))
-
-            if !project.sharedGroups.isEmpty {
-                ForEach(project.sharedGroups) { group in
-                    previewSharedGroupRow(group)
+            if !boundSubs.isEmpty {
+                ForEach(boundSubs) { sub in
+                    previewSubProjectRow(sub)
                 }
             }
 
-            let standaloneSupported = project.platformStatuses.filter { $0.isSupported && !sharedPlatformIds.contains($0.platformId) }
-            let standaloneUnsupported = project.platformStatuses.filter { !$0.isSupported && !sharedPlatformIds.contains($0.platformId) }
+            let supported = project.platformStatuses.filter(\.isSupported)
+            let unsupported = project.platformStatuses.filter { !$0.isSupported }
 
-            if !standaloneSupported.isEmpty {
-                if !project.sharedGroups.isEmpty {
-                    Divider().padding(.vertical, 4)
-                }
-                ForEach(standaloneSupported) { status in
+            if !supported.isEmpty {
+                if !boundSubs.isEmpty { Divider().padding(.vertical, 4) }
+                ForEach(supported) { status in
                     previewPlatformRow(status)
                 }
             }
 
-            if !standaloneUnsupported.isEmpty {
-                if !project.sharedGroups.isEmpty || !standaloneSupported.isEmpty {
-                    Divider().padding(.vertical, 4)
-                }
-                ForEach(standaloneUnsupported) { status in
+            if !unsupported.isEmpty {
+                if !boundSubs.isEmpty || !supported.isEmpty { Divider().padding(.vertical, 4) }
+                ForEach(unsupported) { status in
                     previewPlatformRow(status)
                 }
                 .opacity(0.5)
@@ -147,49 +144,37 @@ struct ProjectDetailView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
-    private func previewSharedGroupRow(_ group: SharedGroup) -> some View {
+    private func previewSubProjectRow(_ sub: SubProject) -> some View {
         HStack(alignment: .center, spacing: 14) {
-            Image(systemName: "square.on.square")
+            Image(systemName: "cube.box")
                 .font(.title2)
-                .foregroundStyle(.blue)
+                .foregroundStyle(.orange)
                 .frame(width: 28)
 
             VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 6) {
-                    ForEach(Array(group.platformIds.enumerated()), id: \.offset) { index, pid in
-                        let p = store.platforms.first { $0.id == pid }
-                        if index > 0 {
-                            Image(systemName: "plus")
-                                .font(.caption.weight(.bold))
-                                .foregroundStyle(.secondary)
-                        }
-                        HStack(spacing: 4) {
-                            Image(systemName: p?.icon ?? "questionmark.square")
-                                .font(.body)
-                            Text(p?.displayName ?? pid)
-                                .font(.body.weight(.semibold))
-                        }
-                    }
+                HStack(spacing: 8) {
+                    Text(sub.name)
+                        .font(.body.weight(.semibold))
 
-                    if !group.name.isEmpty {
-                        Text("- \(group.name)")
-                            .font(.body)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-
-                HStack(spacing: 6) {
-                    if !group.repoName.isEmpty {
+                    if !sub.repoName.isEmpty {
                         HStack(spacing: 3) {
                             Image(systemName: "folder")
                                 .font(.caption)
-                            Text(group.repoName)
+                            Text(sub.repoName)
                                 .font(.callout)
                         }
                         .foregroundStyle(.secondary)
                     }
+                }
 
-                    ForEach(group.languages.filter { store.validLanguageIds.contains($0.id) }) { lang in
+                HStack(spacing: 4) {
+                    ForEach(sub.platformIds, id: \.self) { pid in
+                        let p = store.platforms.first { $0.id == pid }
+                        Image(systemName: p?.icon ?? "questionmark.square")
+                            .font(.caption)
+                    }
+
+                    ForEach(sub.languages.filter { store.validLanguageIds.contains($0.id) }) { lang in
                         Text(lang.displayName)
                             .font(.callout)
                             .padding(.horizontal, 8)
@@ -198,7 +183,7 @@ struct ProjectDetailView: View {
                             .clipShape(Capsule())
                     }
 
-                    ForEach(group.llmTags.filter { store.validLLMTagIds.contains($0.id) }) { tag in
+                    ForEach(sub.llmTags.filter { store.validLLMTagIds.contains($0.id) }) { tag in
                         Text(tag.displayName)
                             .font(.callout)
                             .padding(.horizontal, 8)
@@ -211,20 +196,20 @@ struct ProjectDetailView: View {
 
             Spacer()
 
-            if group.progress > 0 {
+            if sub.progress > 0 {
                 VStack(spacing: 2) {
-                    ProgressView(value: group.progress)
+                    ProgressView(value: sub.progress)
                         .frame(width: 80)
-                    Text("\(Int(group.progress * 100))%")
+                    Text("\(Int(sub.progress * 100))%")
                         .font(.caption.monospacedDigit())
                         .foregroundStyle(.secondary)
                 }
             }
         }
         .padding(12)
-        .background(Color.blue.opacity(0.06))
+        .background(Color.orange.opacity(0.06))
         .clipShape(RoundedRectangle(cornerRadius: 10))
-        .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color.blue.opacity(0.2), lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color.orange.opacity(0.2), lineWidth: 1))
     }
 
     private func previewPlatformRow(_ status: PlatformStatus) -> some View {
@@ -295,7 +280,7 @@ struct ProjectDetailView: View {
     private var editContent: some View {
         VStack(alignment: .leading, spacing: 16) {
             editKeywordsCard
-            editSharedGroupsCard
+            editSubProjectsCard
             editPlatformsCard
         }
     }
@@ -328,30 +313,114 @@ struct ProjectDetailView: View {
         .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 
-    private var editSharedGroupsCard: some View {
-        VStack(alignment: .leading, spacing: 8) {
+    private var editSubProjectsCard: some View {
+        let boundSubs = store.subProjects.filter { project.subProjectIds.contains($0.id) }
+
+        return VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Label(S.detail.sharedGroups, systemImage: "square.on.square")
+                Label(S.detail.subProjects, systemImage: "cube.box")
                     .font(.headline)
 
                 Spacer()
 
-                Button {
-                    let group = SharedGroup(name: "", platformIds: [], repoName: "", languages: [])
-                    store.addSharedGroup(group, projectId: project.id)
+                Menu {
+                    ForEach(store.unboundSubProjects) { sub in
+                        Button(sub.name) {
+                            store.bindSubProject(sub.id, toProject: project.id)
+                        }
+                    }
+                    Divider()
+                    Button(S.detail.newSubProject) {
+                        let sub = SubProject(name: "")
+                        store.addSubProject(sub)
+                        store.bindSubProject(sub.id, toProject: project.id)
+                    }
                 } label: {
-                    Label(S.detail.addSharedGroup, systemImage: "plus.circle")
+                    Label(S.detail.addSubProject, systemImage: "plus.circle")
                 }
             }
 
-            ForEach($project.sharedGroups) { $group in
-                SharedGroupRow(store: store, group: $group, projectId: project.id)
+            if boundSubs.isEmpty {
+                Text(S.detail.addSubProject)
+                    .font(.subheadline)
+                    .foregroundStyle(.tertiary)
+            } else {
+                ForEach(boundSubs) { sub in
+                    editSubProjectRow(sub)
+                }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
         .background(.background.secondary)
         .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+
+    private func editSubProjectRow(_ sub: SubProject) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: "cube.box")
+                .font(.title3)
+                .foregroundStyle(.orange)
+                .frame(width: 24)
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text(sub.name.isEmpty ? S.detail.subProjectName : sub.name)
+                    .font(.headline)
+
+                HStack(spacing: 4) {
+                    ForEach(sub.platformIds, id: \.self) { pid in
+                        let p = store.platforms.first { $0.id == pid }
+                        Image(systemName: p?.icon ?? "questionmark.square")
+                            .font(.caption)
+                    }
+
+                    ForEach(sub.languages) { lang in
+                        Text(lang.displayName)
+                            .font(.caption2)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 1)
+                            .background(.tint.opacity(0.12))
+                            .clipShape(Capsule())
+                    }
+
+                    ForEach(sub.llmTags.filter { store.validLLMTagIds.contains($0.id) }) { tag in
+                        Text(tag.displayName)
+                            .font(.caption2)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 1)
+                            .background(Color.purple.opacity(0.12))
+                            .clipShape(Capsule())
+                    }
+
+                    if !sub.repoName.isEmpty {
+                        HStack(spacing: 2) {
+                            Image(systemName: "folder")
+                                .font(.caption2)
+                            Text(sub.repoName)
+                                .font(.caption2)
+                        }
+                        .foregroundStyle(.secondary)
+                    }
+
+                    if sub.progress > 0 {
+                        Text("\(Int(sub.progress * 100))%")
+                            .font(.caption2.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+
+            Spacer()
+
+            Button(S.detail.unbind) {
+                store.unbindSubProject(sub.id, fromProject: project.id)
+            }
+            .controlSize(.small)
+        }
+        .padding(10)
+        .background(Color.orange.opacity(0.05))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color.orange.opacity(0.3), lineWidth: 0.5))
     }
 
     private var editPlatformsCard: some View {
