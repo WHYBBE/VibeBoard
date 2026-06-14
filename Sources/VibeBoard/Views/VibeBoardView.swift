@@ -315,7 +315,9 @@ struct NewSubProjectSheet: View {
                     .keyboardShortcut(.cancelAction)
 
                 Button(S.sidebar.create) {
-                    store.addSubProject(SubProject(name: name, repoURL: repoURL))
+                    let sub = SubProject(name: name, repoURL: repoURL)
+                    store.addSubProject(sub)
+                    store.selectedSubProjectId = sub.id
                     dismiss()
                 }
                 .keyboardShortcut(.defaultAction)
