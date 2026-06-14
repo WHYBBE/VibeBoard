@@ -15,6 +15,13 @@ public struct Language: Identifiable, Codable, Sendable {
         self.icon = icon
     }
 
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decodeIfPresent(String.self, forKey: .id) ?? ""
+        displayName = try c.decodeIfPresent(String.self, forKey: .displayName) ?? id
+        icon = try c.decodeIfPresent(String.self, forKey: .icon) ?? "text.page.slash"
+    }
+
     public static let builtInAll: [Language] = []
 }
 

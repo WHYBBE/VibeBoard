@@ -67,16 +67,16 @@ struct OverviewView: View {
     private func subProjectRow(_ sub: SubProject) -> some View {
         HStack(spacing: 10) {
             HStack(spacing: 5) {
-                Image(systemName: sub.isShared ? "link.circle.fill" : "cube.box")
+                Image(systemName: sub.displayIcon)
                     .font(.body.weight(.semibold))
-                    .foregroundStyle(sub.isShared ? .blue : .orange)
+                    .foregroundStyle(Color(hex: sub.displayColor))
 
                 Text(sub.name.isEmpty ? S.detail.subProjectName : sub.name)
                     .font(.callout.weight(.medium))
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
-            .background(sub.isShared ? Color.blue.opacity(0.1) : Color.orange.opacity(0.1))
+            .background(Color(hex: sub.displayColor).opacity(0.1))
             .clipShape(Capsule())
 
             HStack(spacing: 1) {

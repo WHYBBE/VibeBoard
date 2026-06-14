@@ -287,7 +287,7 @@ public final class VibeBoardStore: ObservableObject {
         guard let decoded = try? JSONDecoder().decode(StoreSnapshot.self, from: data) else { return false }
         projects = decoded.projects
         selectedProjectId = decoded.selectedProjectId
-        platforms = decoded.platforms
+        platforms = decoded.platforms.isEmpty ? Platform.builtInAll : decoded.platforms
         languages = decoded.languages
         llmTags = decoded.llmTags
         subProjects = decoded.subProjects
@@ -316,4 +316,27 @@ private struct StoreSnapshot: Codable {
     var subProjects: [SubProject]
     var appLanguage: AppLanguage
     var appTheme: AppTheme
+
+    init(projects: [VibeProject], selectedProjectId: UUID?, platforms: [Platform], languages: [Language], llmTags: [LLMTag], subProjects: [SubProject], appLanguage: AppLanguage, appTheme: AppTheme) {
+        self.projects = projects
+        self.selectedProjectId = selectedProjectId
+        self.platforms = platforms
+        self.languages = languages
+        self.llmTags = llmTags
+        self.subProjects = subProjects
+        self.appLanguage = appLanguage
+        self.appTheme = appTheme
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        projects = try c.decodeIfPresent([VibeProject].self, forKey: .projects) ?? []
+        selectedProjectId = try c.decodeIfPresent(UUID.self, forKey: .selectedProjectId)
+        platforms = try c.decodeIfPresent([Platform].self, forKey: .platforms) ?? []
+        languages = try c.decodeIfPresent([Language].self, forKey: .languages) ?? []
+        llmTags = try c.decodeIfPresent([LLMTag].self, forKey: .llmTags) ?? []
+        subProjects = try c.decodeIfPresent([SubProject].self, forKey: .subProjects) ?? []
+        appLanguage = (try? c.decodeIfPresent(AppLanguage.self, forKey: .appLanguage)) ?? .zh
+        appTheme = (try? c.decodeIfPresent(AppTheme.self, forKey: .appTheme)) ?? .system
+    }
 }

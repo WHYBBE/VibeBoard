@@ -18,9 +18,8 @@ struct SubProjectRow: View {
     private var cardLayout: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 10) {
-                Image(systemName: subProject.isShared ? "link.circle.fill" : "cube.box")
+                IconPickerField(icon: $subProject.icon, colorHex: $subProject.colorHex, defaultIcon: subProject.isShared ? "link.circle.fill" : "cube.box", defaultColorHex: subProject.isShared ? "007AFF" : "FF9500")
                     .font(.title3)
-                    .foregroundStyle(subProject.isShared ? .blue : .orange)
                     .frame(width: 24)
 
                 TextField(S.detail.subProjectName, text: $subProject.name)
@@ -139,10 +138,10 @@ struct SubProjectRow: View {
             }
         }
         .padding(10)
-        .background(subProject.isShared ? Color.blue.opacity(0.05) : Color.orange.opacity(0.05))
+        .background(Color(hex: subProject.displayColor).opacity(0.05))
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(
-            subProject.isShared ? Color.blue.opacity(0.3) : Color.orange.opacity(0.3),
+            Color(hex: subProject.displayColor).opacity(0.3),
             lineWidth: 0.5
         ))
     }
@@ -162,9 +161,8 @@ struct SubProjectRow: View {
 
     private var standaloneHeader: some View {
         HStack(alignment: .bottom, spacing: 16) {
-            Image(systemName: subProject.isShared ? "link.circle.fill" : "cube.box")
+            IconPickerField(icon: $subProject.icon, colorHex: $subProject.colorHex, defaultIcon: subProject.isShared ? "link.circle.fill" : "cube.box", defaultColorHex: subProject.isShared ? "007AFF" : "FF9500")
                 .font(.title)
-                .foregroundStyle(subProject.isShared ? .blue : .orange)
 
             TextField(S.detail.subProjectName, text: $subProject.name)
                 .font(.title.bold())
@@ -361,4 +359,157 @@ struct LLMTagToggleTag: View {
         .buttonStyle(.plain)
         .foregroundStyle(isSelected ? .primary : .secondary)
     }
+}
+
+struct IconPickerField: View {
+    @Binding var icon: String
+    @Binding var colorHex: String
+    let defaultIcon: String
+    let defaultColorHex: String
+    @State private var showPicker = false
+    @State private var frozenColorHex: String = ""
+    @State private var customIconInput: String = ""
+    @State private var pickerColor: Color = .orange
+
+    private var effectiveIcon: String { icon.isEmpty ? defaultIcon : icon }
+    private var effectiveColor: Color { Color(hex: (showPicker ? frozenColorHex : colorHex).isEmpty ? defaultColorHex : (showPicker ? frozenColorHex : colorHex)) }
+
+    private static let presetColors: [String] = [
+        "FF9500", "007AFF", "34C759", "AF52DE", "FF3B30",
+        "5AC8FA", "5856D6", "FF2D55", "FFCC00", "8E8E93",
+    ]
+
+    var body: some View {
+        Button {
+            frozenColorHex = colorHex
+            pickerColor = Color(hex: colorHex.isEmpty ? defaultColorHex : colorHex)
+            showPicker = true
+        } label: {
+            Image(systemName: effectiveIcon)
+                .foregroundStyle(effectiveColor)
+        }
+        .buttonStyle(.plain)
+        .popover(isPresented: $showPicker) {
+            iconPickerContent
+        }
+    }
+
+    private func hexFromColor(_ color: Color) -> String {
+        #if canImport(AppKit)
+        let nsColor = NSColor(color)
+        guard let rgb = nsColor.usingColorSpace(.sRGB) else { return colorHex.isEmpty ? defaultColorHex : colorHex }
+        return String(format: "%02X%02X%02X", Int(rgb.redComponent * 255), Int(rgb.greenComponent * 255), Int(rgb.blueComponent * 255))
+        #else
+        let uiColor = UIColor(color)
+        var r: CGFloat = 0; var g: CGFloat = 0; var b: CGFloat = 0; var a: CGFloat = 0
+        uiColor.getRed(&r, green: &g, blue: &b, alpha: &a)
+        return String(format: "%02X%02X%02X", Int(r * 255), Int(g * 255), Int(b * 255))
+        #endif
+    }
+
+    private var iconPickerContent: some View {
+        VStack(spacing: 14) {
+            Text(S.detail.changeIcon)
+                .font(.headline)
+
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 5), spacing: 6) {
+                ForEach(SubProjectIconPresets.all, id: \.self) { name in
+                    Button {
+                        icon = name == defaultIcon ? "" : name
+                    } label: {
+                        Image(systemName: name)
+                            .font(.title3)
+                            .frame(width: 36, height: 36)
+                            .background(icon == name || (icon.isEmpty && name == defaultIcon) ? Color.gray.opacity(0.15) : Color.clear)
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.primary)
+                }
+            }
+
+            HStack {
+                TextField(S.detail.customIcon, text: $customIconInput)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 120)
+
+                Button("OK") {
+                    let trimmed = customIconInput.trimmingCharacters(in: .whitespaces)
+                    if !trimmed.isEmpty { icon = trimmed }
+                    customIconInput = ""
+                }
+                .disabled(customIconInput.trimmingCharacters(in: .whitespaces).isEmpty)
+            }
+
+            Divider()
+
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 6), spacing: 6) {
+                ForEach(Self.presetColors, id: \.self) { hex in
+                    Button {
+                        colorHex = hex == defaultColorHex ? "" : hex
+                    } label: {
+                        Circle()
+                            .fill(Color(hex: hex))
+                            .frame(width: 28, height: 28)
+                            .overlay(Circle().strokeBorder(.primary, lineWidth: colorHex == hex ? 2 : 0))
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                Button {
+                    colorHex = String(format: "%02X%02X%02X", Int.random(in: 50...255), Int.random(in: 50...255), Int.random(in: 50...255))
+                } label: {
+                    Image(systemName: "die.face.5")
+                        .font(.callout)
+                        .frame(width: 28, height: 28)
+                        .background(Color.gray.opacity(0.1))
+                        .clipShape(Circle())
+                }
+                .buttonStyle(.plain)
+            }
+
+            HStack {
+                ColorPicker(selection: $pickerColor) {
+                    Text(S.detail.color)
+                        .font(.subheadline)
+                }
+                .onChange(of: pickerColor) { _, newColor in
+                    colorHex = hexFromColor(newColor)
+                }
+
+                Spacer()
+
+                Text(colorHex.isEmpty ? defaultColorHex : colorHex)
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(14)
+        .frame(width: 250)
+    }
+}
+
+struct SubProjectIconPresets {
+    static let all = [
+        "cube.box",
+        "link.circle.fill",
+        "folder.fill",
+        "doc.fill",
+        "hammer.fill",
+        "wrench.and.screwdriver.fill",
+        "gearshape.fill",
+        "server.rack",
+        "network",
+        "externaldrive.fill",
+        "desktopcomputer",
+        "smartphone",
+        "globe",
+        "pc",
+        "terminal.fill",
+        "chevron.left.forwardslash.chevron.right",
+        "cpu",
+        "arrow.triangle.branch",
+        "building.2.fill",
+        "star.fill",
+    ]
 }

@@ -20,4 +20,13 @@ public struct VibeProject: Identifiable, Codable, Equatable {
         self.subProjectIds = subProjectIds
         self.createdAt = createdAt
     }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
+        name = try c.decodeIfPresent(String.self, forKey: .name) ?? ""
+        keywords = try c.decodeIfPresent([String].self, forKey: .keywords) ?? []
+        subProjectIds = try c.decodeIfPresent([UUID].self, forKey: .subProjectIds) ?? []
+        createdAt = try c.decodeIfPresent(Date.self, forKey: .createdAt) ?? Date()
+    }
 }

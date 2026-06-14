@@ -70,6 +70,9 @@ public struct S {
         var addSubProjectHint: String { S.isZh ? "添加子项目或为平台自动创建" : "Add a sub project or create for platforms" }
         var createForPlatforms: String { S.isZh ? "为平台创建" : "Create for Platforms" }
         var platformOnly: String { S.isZh ? "平台专属" : "Platform Only" }
+        var changeIcon: String { S.isZh ? "更换图标" : "Change Icon" }
+        var customIcon: String { S.isZh ? "自定义图标" : "Custom Icon" }
+        var color: String { S.isZh ? "颜色" : "Color" }
     }
 
     public static var settings: Settings { .init() }

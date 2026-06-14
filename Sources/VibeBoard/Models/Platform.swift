@@ -21,6 +21,15 @@ public struct Platform: Identifiable, Codable, Hashable, Sendable {
         self.isEnabled = isEnabled
     }
 
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decodeIfPresent(String.self, forKey: .id) ?? ""
+        displayName = try c.decodeIfPresent(String.self, forKey: .displayName) ?? id
+        icon = try c.decodeIfPresent(String.self, forKey: .icon) ?? "desktopcomputer"
+        isBuiltIn = try c.decodeIfPresent(Bool.self, forKey: .isBuiltIn) ?? false
+        isEnabled = try c.decodeIfPresent(Bool.self, forKey: .isEnabled) ?? true
+    }
+
     public static let macOS = Platform(id: "macOS", displayName: "macOS", icon: "desktopcomputer", isBuiltIn: true)
     public static let windows = Platform(id: "windows", displayName: "Windows", icon: "pc", isBuiltIn: true)
     public static let linux = Platform(id: "linux", displayName: "Linux", icon: "server.rack", isBuiltIn: true)

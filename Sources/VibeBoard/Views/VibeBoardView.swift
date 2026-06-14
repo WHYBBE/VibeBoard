@@ -321,9 +321,9 @@ struct SubProjectSidebarRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 3) {
             HStack(spacing: 6) {
-                Image(systemName: sub.isShared ? "link.circle.fill" : "cube.box")
+                Image(systemName: sub.displayIcon)
                     .font(.body)
-                    .foregroundStyle(sub.isShared ? .blue : .orange)
+                    .foregroundStyle(Color(hex: sub.displayColor))
 
                 Text(sub.name)
                     .font(.body.weight(.medium))

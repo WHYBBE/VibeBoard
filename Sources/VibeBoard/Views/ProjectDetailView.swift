@@ -167,9 +167,9 @@ struct ProjectDetailView: View {
     }
 
     private func subProjectIcon(_ sub: SubProject) -> some View {
-        Image(systemName: sub.isShared ? "link.circle.fill" : "cube.box")
+        Image(systemName: sub.displayIcon)
             .font(.title2)
-            .foregroundStyle(sub.isShared ? .blue : (sub.isSupported ? .green : .secondary))
+            .foregroundStyle(Color(hex: sub.displayColor))
             .frame(width: 28)
     }
 
