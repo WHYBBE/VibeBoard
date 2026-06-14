@@ -155,30 +155,16 @@ public struct VibeBoardView: View {
     private var subProjectSidebar: some View {
         List(selection: $store.selectedSubProjectId) {
             ForEach(store.subProjects) { sub in
-                HStack(spacing: 8) {
-                    Image(systemName: "cube.box")
-                        .foregroundStyle(.orange)
-                    Text(sub.name)
-                        .lineLimit(1)
-                    Spacer()
-                    if !sub.platformIds.isEmpty {
-                        ForEach(sub.platformIds.prefix(3), id: \.self) { pid in
-                            let p = store.platforms.first { $0.id == pid }
-                            Image(systemName: p?.icon ?? "questionmark.square")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                SubProjectSidebarRow(store: store, sub: sub)
+                    .tag(sub.id)
+                    .contextMenu {
+                        Button(role: .destructive) {
+                            subProjectToDelete = sub.id
+                            showDeleteSubProjectConfirm = true
+                        } label: {
+                            Label(S.detail.deleteSubProjectConfirmTitle, systemImage: "trash")
                         }
                     }
-                }
-                .tag(sub.id)
-                .contextMenu {
-                    Button(role: .destructive) {
-                        subProjectToDelete = sub.id
-                        showDeleteSubProjectConfirm = true
-                    } label: {
-                        Label(S.detail.deleteSubProjectConfirmTitle, systemImage: "trash")
-                    }
-                }
             }
             .onDelete { indexSet in
                 if indexSet.count == 1, let index = indexSet.first {
@@ -332,5 +318,72 @@ struct NewSubProjectSheet: View {
         guard let last = url.split(separator: "/").last else { return name }
         let result = last.hasSuffix(".git") ? String(last.dropLast(4)) : String(last)
         return result.trimmingCharacters(in: .whitespaces)
+    }
+}
+
+struct SubProjectSidebarRow: View {
+    let store: VibeBoardStore
+    let sub: SubProject
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(spacing: 6) {
+                Image(systemName: sub.isShared ? "link.circle.fill" : "cube.box")
+                    .font(.body)
+                    .foregroundStyle(sub.isShared ? .blue : .orange)
+
+                Text(sub.name)
+                    .font(.body.weight(.medium))
+                    .lineLimit(1)
+
+                Spacer(minLength: 0)
+
+                if !sub.isSupported {
+                    Image(systemName: "xmark.circle")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                if sub.progress > 0 {
+                    Text("\(Int(sub.progress * 100))%")
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(sub.progress >= 1 ? .green : .secondary)
+                }
+            }
+
+            HStack(spacing: 4) {
+                ForEach(sub.platformIds, id: \.self) { pid in
+                    let p = store.platforms.first { $0.id == pid }
+                    HStack(spacing: 2) {
+                        Image(systemName: p?.icon ?? "questionmark.square")
+                            .font(.caption2)
+                        if sub.isShared {
+                            Text(p?.displayName ?? pid)
+                                .font(.system(size: 9))
+                        }
+                    }
+                    .padding(.horizontal, 4)
+                    .padding(.vertical, 1)
+                    .background(sub.isShared ? Color.blue.opacity(0.12) : Color.gray.opacity(0.08))
+                    .clipShape(Capsule())
+                }
+
+                ForEach(sub.languages.prefix(2)) { lang in
+                    Text(lang.displayName)
+                        .font(.system(size: 9))
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 1)
+                        .background(.tint.opacity(0.12))
+                        .clipShape(Capsule())
+                }
+
+                if sub.languages.count > 2 {
+                    Text("+\(sub.languages.count - 2)")
+                        .font(.system(size: 9))
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .padding(.vertical, 2)
     }
 }
