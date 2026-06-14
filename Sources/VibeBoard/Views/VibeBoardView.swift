@@ -235,8 +235,7 @@ public struct VibeBoardView: View {
             case .subProjects:
                 if let selectedId = store.selectedSubProjectId,
                    let index = store.subProjects.firstIndex(where: { $0.id == selectedId }) {
-                    SubProjectRow(store: store, subProject: $store.subProjects[index], projectId: nil)
-                        .padding(20)
+                    SubProjectRow(store: store, subProject: $store.subProjects[index], projectId: nil, standalone: true)
                 } else {
                     ContentUnavailableView(
                         S.detail.addSubProject,
