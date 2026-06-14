@@ -25,7 +25,9 @@ struct ProjectRow: View {
 
             Spacer()
         }
-        .padding(.vertical, 4)
-        .contentShape(Rectangle())
+        .padding(.vertical, 8)
+        .padding(.horizontal, 12)
+        .background(isSelected ? Color.accentColor.opacity(0.3) : Color.gray.opacity(0.06))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }

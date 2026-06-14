@@ -71,31 +71,27 @@ public struct VibeBoardView: View {
     }
 
     private var projectSidebar: some View {
-        List(selection: $store.selectedProjectId) {
-            ForEach(store.projects) { project in
-                ProjectRow(project: project, isSelected: store.selectedProjectId == project.id, subProjectCount: store.subProjects(forProject: project.id).count)
-                    .tag(project.id)
-                    .contextMenu {
-                        Button(role: .destructive) {
-                            projectToDelete = project.id
-                            showDeleteProjectConfirm = true
-                        } label: {
-                            Label(S.sidebar.deleteProject, systemImage: "trash")
+        ScrollView {
+            LazyVStack(spacing: 6) {
+                ForEach(store.projects) { project in
+                    ProjectRow(project: project, isSelected: store.selectedProjectId == project.id, subProjectCount: store.subProjects(forProject: project.id).count)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            store.selectedProjectId = project.id
                         }
-                    }
-            }
-            .onDelete { indexSet in
-                if indexSet.count == 1, let index = indexSet.first {
-                    projectToDelete = store.projects[index].id
-                    showDeleteProjectConfirm = true
-                } else {
-                    for index in indexSet {
-                        store.deleteProject(store.projects[index].id)
-                    }
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                projectToDelete = project.id
+                                showDeleteProjectConfirm = true
+                            } label: {
+                                Label(S.sidebar.deleteProject, systemImage: "trash")
+                            }
+                        }
                 }
             }
+            .padding(.horizontal, 12)
+            .padding(.top, 8)
         }
-        .listStyle(.sidebar)
         .safeAreaInset(edge: .bottom) {
             Picker(selection: $groupBy) {
                 ForEach(SidebarGroupBy.allCases, id: \.self) { mode in
@@ -153,31 +149,27 @@ public struct VibeBoardView: View {
     @State private var showDeleteProjectConfirm = false
 
     private var subProjectSidebar: some View {
-        List(selection: $store.selectedSubProjectId) {
-            ForEach(store.subProjects) { sub in
-                SubProjectSidebarRow(store: store, sub: sub)
-                    .tag(sub.id)
-                    .contextMenu {
-                        Button(role: .destructive) {
-                            subProjectToDelete = sub.id
-                            showDeleteSubProjectConfirm = true
-                        } label: {
-                            Label(S.detail.deleteSubProjectConfirmTitle, systemImage: "trash")
+        ScrollView {
+            LazyVStack(spacing: 6) {
+                ForEach(store.subProjects) { sub in
+                    SubProjectSidebarRow(store: store, sub: sub, isSelected: store.selectedSubProjectId == sub.id)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            store.selectedSubProjectId = sub.id
                         }
-                    }
-            }
-            .onDelete { indexSet in
-                if indexSet.count == 1, let index = indexSet.first {
-                    subProjectToDelete = store.subProjects[index].id
-                    showDeleteSubProjectConfirm = true
-                } else {
-                    for index in indexSet {
-                        store.deleteSubProject(store.subProjects[index].id)
-                    }
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                subProjectToDelete = sub.id
+                                showDeleteSubProjectConfirm = true
+                            } label: {
+                                Label(S.detail.deleteSubProjectConfirmTitle, systemImage: "trash")
+                            }
+                        }
                 }
             }
+            .padding(.horizontal, 12)
+            .padding(.top, 8)
         }
-        .listStyle(.sidebar)
         .overlay {
             if store.subProjects.isEmpty {
                 ContentUnavailableView(
@@ -324,6 +316,7 @@ struct NewSubProjectSheet: View {
 struct SubProjectSidebarRow: View {
     let store: VibeBoardStore
     let sub: SubProject
+    var isSelected: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 3) {
@@ -384,6 +377,9 @@ struct SubProjectSidebarRow: View {
                 }
             }
         }
-        .padding(.vertical, 2)
+        .padding(.vertical, 6)
+        .padding(.horizontal, 12)
+        .background(isSelected ? Color.accentColor.opacity(0.3) : Color.gray.opacity(0.06))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }
