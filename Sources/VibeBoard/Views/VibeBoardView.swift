@@ -107,8 +107,7 @@ public struct VibeBoardView: View {
             }
             .pickerStyle(.segmented)
             .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(.bar)
+            .padding(.vertical, 6)
         }
         .overlay {
             if store.projects.isEmpty {
@@ -263,7 +262,7 @@ public struct VibeBoardView: View {
                     EmptyView()
                 }
                 .pickerStyle(.segmented)
-                .frame(width: 180)
+                .frame(width: 120)
             }
             ToolbarItem(placement: .primaryAction) {
                 if sidebarMode == .projects {
