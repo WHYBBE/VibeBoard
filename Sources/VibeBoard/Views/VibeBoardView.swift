@@ -292,6 +292,7 @@ struct NewSubProjectSheet: View {
     @ObservedObject var store: VibeBoardStore
     @Environment(\.dismiss) private var dismiss
     @State private var name: String = ""
+    @State private var repoURL: String = ""
 
     var body: some View {
         VStack(spacing: 16) {
@@ -301,12 +302,20 @@ struct NewSubProjectSheet: View {
             TextField(S.detail.subProjectName, text: $name)
                 .textFieldStyle(.roundedBorder)
 
+            TextField(S.detail.repoURL, text: $repoURL)
+                .textFieldStyle(.roundedBorder)
+                .onChange(of: repoURL) { _, newValue in
+                    if name.trimmingCharacters(in: .whitespaces).isEmpty {
+                        name = parseRepoName(from: newValue)
+                    }
+                }
+
             HStack {
                 Button(S.sidebar.cancel) { dismiss() }
                     .keyboardShortcut(.cancelAction)
 
                 Button(S.sidebar.create) {
-                    store.addSubProject(SubProject(name: name))
+                    store.addSubProject(SubProject(name: name, repoURL: repoURL))
                     dismiss()
                 }
                 .keyboardShortcut(.defaultAction)
@@ -315,5 +324,11 @@ struct NewSubProjectSheet: View {
         }
         .padding()
         .frame(width: 300)
+    }
+
+    private func parseRepoName(from url: String) -> String {
+        guard let last = url.split(separator: "/").last else { return name }
+        let result = last.hasSuffix(".git") ? String(last.dropLast(4)) : String(last)
+        return result.trimmingCharacters(in: .whitespaces)
     }
 }
